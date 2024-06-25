@@ -1,0 +1,90 @@
+/* CSS Reset */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+/* Define light theme variables */
+:root {
+  --background-color: #ffffff;
+  --text-color: #393c43;
+  --note-background-color: #ffffff;
+}
+
+/* Define dark theme variables */
+body.dark-theme {
+  --background-color: #393c43;
+  --text-color: #e8eaed;
+  --note-background-color: #393c43;
+}
+
+.theme-toggle i {
+  font-size: 1.5rem; /* Adjust icon size */
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.theme-toggle i.text-yellow-400 {
+  color: #ffe484; /* Yellow color for light theme */
+}
+
+.theme-toggle i.text-gray-800 {
+  color: #f6f1d5; /* Gray color for dark theme */
+}
+/* Divider styling */
+.divider-dark {
+  background-color: #5f6368; /* Dark theme divider color */
+  height: 2px;
+  margin-bottom: 20px 0;
+}
+
+.divider-light {
+  background-color: #dadce0; /* Light theme divider color */
+  height: 2px;
+  margin-bottom: 20px 0;
+}
+
+.title-dark {
+  display: inline-block;
+  font-family: 'Product Sans', Arial, sans-serif;
+  font-size: 22px;
+  line-height: 24px;
+  padding-left: 8px;
+  position: relative;
+  top: -1.5px;
+  vertical-align: middle;
+  background: linear-gradient(90deg, #fdd835, #ffc107, #ffeb3b, #fff176, #ffee58, #fbc02d, #f57f17);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+}
+
+.title-light {
+  color: #000000;
+  display: inline-block;
+  font-family: 'Product Sans', Arial, sans-serif;
+  font-size: 22px;
+  line-height: 24px;
+  padding-left: 8px;
+  position: relative;
+  top: -1.5px;
+  vertical-align: middle;
+  background: linear-gradient(90deg, #795548, #8d6e63, #a1887f, #9e9491, #736d6a, #6d4c41, #5d4037);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+}
+/* Use variables in your styles */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: Arial, sans-serif; /* Ensure a consistent font across the app */
+}
