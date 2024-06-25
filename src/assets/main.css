@@ -62,6 +62,7 @@ body.dark-theme {
   top: -1.5px;
   vertical-align: middle;
   background: linear-gradient(90deg, #fdd835, #ffc107, #ffeb3b, #fff176, #ffee58, #fbc02d, #f57f17);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;
@@ -78,6 +79,7 @@ body.dark-theme {
   top: -1.5px;
   vertical-align: middle;
   background: linear-gradient(90deg, #795548, #8d6e63, #a1887f, #9e9491, #736d6a, #6d4c41, #5d4037);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: bold;

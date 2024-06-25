@@ -2,8 +2,8 @@
 <template>
   <div class="home">
     <!-- Header Section -->
-    <div class="header">
-      <img src="../assets/logo.png" alt="Logo" class="logo" />
+    <header class="header">
+      <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <h1 :class="{ 'title-dark': isDarkTheme, 'title-light': !isDarkTheme }">
         Memo
       </h1>
@@ -29,30 +29,30 @@
       <button class="toggle-button" @click="toggleNotesPerLine">
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
-          src="../assets/list-dark.png"
+          src="@/assets/list-dark.png"
           alt="List View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 5 && isDarkTheme"
-          src="../assets/grid-dark.png"
+          src="@/assets/grid-dark.png"
           alt="Grid View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 1 && !isDarkTheme"
-          src="../assets/list-light.png"
-          alt="Grid View"
+          src="@/assets/list-light.png"
+          alt="List View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 5 && !isDarkTheme"
-          src="../assets/grid-light.png"
+          src="@/assets/grid-light.png"
           alt="Grid View"
           class="toggle-icon"
         />
       </button>
-    </div>
+    </header>
 
     <div
       class="divider"
@@ -66,29 +66,33 @@
     </div>
 
     <!-- Note Grid Section -->
-    <div class="note-grid">
-      <draggable
-        :value="filteredNotesWithAddButton"
-        class="notes-grid"
-        group="notes"
-        :disabled="isAnyNoteEditing"
-        :item-key="(note) => note.id"
-        :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
-        @end="handleDragEnd"
-        v-bind="$attrs"
-        v-on="$listeners"
-        ghost-class="dragging-ghost"
-        chosen-class="dragging-chosen"
-        handle=".note-container"
-        @start="handleDragStart"
+    <div
+      class="notes-grid"
+      :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
+    >
+      <div
+        v-for="(note, index) in filteredNotesWithAddButton"
+        :key="note.id"
+        class="note-container"
+        :class="{
+          'dragging-placeholder': isDragging && index === draggedNoteIndex,
+          'dragging-preview': isDragging && index === chosenNoteIndex,
+          'chosen-note': !isDragging && index === chosenNoteIndex,
+        }"
+        :style="{
+          transform:
+            isDragging && index === draggedNoteIndex
+              ? `translate(${draggedPosition.x}px, ${draggedPosition.y}px)`
+              : '',
+        }"
+        :draggable="!note.isAddButton && !note.isEditing"
+        @dragstart="handleDragStart(index, $event)"
+        @dragover.prevent
+        @drop="handleDrop(index)"
+        @dragend="handleDragEnd"
       >
-        <div
-          v-for="(note, index) in filteredNotesWithAddButton"
-          :key="note.id"
-          class="note-container"
-          :draggable="!note.isAddButton"
-        >
-          <template v-if="note && !note.isAddButton">
+        <transition name="fade">
+          <template v-if="!note.isAddButton">
             <!-- Render existing notes -->
             <Note
               :title="note.title"
@@ -103,22 +107,21 @@
               @update-is-editing="updateIsEditing(index, $event)"
             />
           </template>
-          <template v-else-if="note && note.isAddButton">
-            <!-- Render add button -->
-            <div class="note add-note" @click="addNote">
-              <i class="fas fa-plus"></i>
-            </div>
-          </template>
-        </div>
-      </draggable>
+        </transition>
+        <template v-if="note.isAddButton">
+          <!-- Render add button -->
+          <div class="note add-note" @click="addNote">
+            <i class="fas fa-plus"></i>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import Note from "../components/Note.vue";
 import SortDropdown from "../components/SortDropdown.vue";
-import draggable from "vuedraggable";
+import Note from "../components/Note.vue";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -126,7 +129,6 @@ export default {
   components: {
     Note,
     SortDropdown,
-    draggable,
   },
   data() {
     return {
@@ -135,28 +137,29 @@ export default {
       notesPerLine: 5,
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
+      draggedNoteIndex: null,
+      chosenNoteIndex: null,
+      draggedPosition: { x: 0, y: 0 },
     };
   },
   computed: {
     isAnyNoteEditing() {
       return this.notes.some((note) => note.isEditing);
     },
+    isDragging() {
+      return this.draggedNoteIndex !== null;
+    },
     filteredNotes() {
       const query = this.searchQuery.toLowerCase();
-      if (!this.notes) return [];
       return this.notes.filter((note) =>
         note.title.toLowerCase().includes(query)
       );
     },
     filteredNotesWithAddButton() {
-      const notesWithAddButton = [...this.filteredNotes];
-      notesWithAddButton.push({ isAddButton: true }); // Add button as a separate note
-      return notesWithAddButton;
+      return [...this.filteredNotes, { isAddButton: true }];
     },
   },
-
   mounted() {
-    // Check local storage for theme preference
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
@@ -181,17 +184,45 @@ export default {
     updateTime(index, newTime) {
       this.notes[index].timestamp = newTime;
     },
-    deleteNote(index) {
-      this.notes.splice(index, 1);
-      this.reassignIds(); // Reassign IDs after deleting a note
-      this.nextId = this.notes.length + 1; // Update nextId to be length + 1
+    toggleNotesPerLine() {
+      this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
+    },
+    updateIsEditing(index, isEditing) {
+      this.notes = this.notes.map((note, idx) => ({
+        ...note,
+        isEditing: idx === index ? isEditing : false,
+      }));
+    },
+    handleNoteReorder(event) {
+      const movedNote = this.notes.splice(event.oldIndex, 1)[0];
+      this.notes.splice(event.newIndex, 0, movedNote);
+    },
+    handleDragStart(index, event) {
+      // Check if the note is currently editing
+      if (this.notes[index].isEditing) {
+        event.preventDefault();
+        return;
+      }
+
+      this.draggedNoteIndex = index;
+    },
+    handleDrop(index) {
+      if (index !== this.draggedNoteIndex) {
+        const draggedNote = this.notes[this.draggedNoteIndex];
+        this.notes.splice(this.draggedNoteIndex, 1);
+        this.notes.splice(index, 0, draggedNote);
+      }
+      this.draggedNoteIndex = null;
+    },
+    handleDragEnd() {
+      this.draggedNoteIndex = null;
     },
     reassignIds() {
-      this.notes = this.notes.map((note, index) => {
-        return { ...note, id: index + 1 }; // IDs start from 1
+      this.notes.forEach((note, index) => {
+        note.id = index + 1;
       });
+      this.nextId = this.notes.length + 1;
     },
-
     sortNotes(criteria) {
       switch (criteria) {
         case "Most":
@@ -208,38 +239,19 @@ export default {
           break;
       }
     },
-    toggleNotesPerLine() {
-      this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
-    },
-    updateIsEditing(index, isEditing) {
-      // Iterate through notes to update isEditing state
-      this.notes = this.notes.map((note, idx) => ({
-        ...note,
-        isEditing: idx === index ? isEditing : false,
-      }));
-    },
-
-    handleNoteReorder(event) {
-      const movedNote = this.notes.splice(event.oldIndex, 1)[0];
-      this.notes.splice(event.newIndex, 0, movedNote);
-    },
-    handleDragStart(event) {
-      event.item.style.opacity = "0"; // Hide the note being dragged
-    },
-    handleDragEnd(event) {
-      event.item.style.opacity = "1"; // Restore the note's visibility
-      this.handleNoteReorder(event);
-    },
     addNote() {
       const newNote = {
         title: "",
         content: "",
-        id: this.nextId,
         timestamp: Date.now(),
+        id: this.nextId++,
         isEditing: false,
       };
       this.notes.push(newNote);
-      this.nextId++;
+    },
+    deleteNote(index) {
+      this.notes.splice(index, 1);
+      this.reassignIds();
     },
   },
 };
@@ -247,6 +259,7 @@ export default {
 
 <style scoped>
 @import "../assets/main.css";
+
 .app {
   display: flex;
   flex-direction: column;
@@ -269,6 +282,11 @@ export default {
   margin-bottom: 1.5%;
   height: 20px;
   position: relative;
+}
+
+.divider {
+  margin-bottom: 1%;
+  background-color: var(--text-color);
 }
 
 .logo {
@@ -373,6 +391,8 @@ export default {
   justify-content: center;
   background-color: var(--note-background-color);
   color: var(--note-text-color);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  position: relative; /* Ensure positioning context for absolute children */
 }
 
 .add-note {
@@ -395,23 +415,31 @@ export default {
 .add-note:hover {
   background-color: #e0e0e0;
 }
-.dragging-ghost {
-  opacity: 0.6;
-  transform: scale(1.05);
+
+.dragging-placeholder {
+  opacity: 0; /* Make the dragged note disappear */
+  height: 0; /* Optional: Collapse the height to remove the empty space */
+  margin: 0; /* Optional: Remove any margin */
 }
 
-.dragging-chosen {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.dragging-preview {
+  opacity: 0.3; /* Opacity for the preview of the new position */
 }
+
+.chosen-note {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Shadow for the chosen note */
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter, 
-.fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
+
 @media (max-width: 600px) {
   .notes-grid {
     grid-template-columns: repeat(1, 1fr);
@@ -435,6 +463,7 @@ export default {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
