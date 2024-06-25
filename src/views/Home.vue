@@ -75,34 +75,39 @@
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleNoteReorder"
+        v-bind="$attrs"
+        v-on="$listeners"
+        ghost-class="dragging-ghost"
+        chosen-class="dragging-chosen"
+        handle=".note-container"
       >
-      <div
-    v-for="(note, index) in filteredNotesWithAddButton"
-    :key="note.id"
-    class="note-container"
-    :draggable="!note.isAddButton"
-  >
-    <template v-if="note && !note.isAddButton">
-      <!-- Render existing notes -->
-      <Note
-        :title="note.title"
-        :content="note.content"
-        :timestamp="note.timestamp"
-        :isEditing="note.isEditing"
-        :notesPerLine="notesPerLine"
-        @update-title="updateTitle(index, $event)"
-        @update-content="updateContent(index, $event)"
-        @update-time="updateTime(index, $event)"
-        @delete-note="deleteNote(index)"
-        @update-is-editing="updateIsEditing(index, $event)"
-      />
-    </template>
-    <template v-else-if="note && note.isAddButton">
-      <!-- Render add button -->
-      <div class="note add-note" @click="addNote">
-        <i class="fas fa-plus"></i>
-      </div>
-    </template>
+        <div
+          v-for="(note, index) in filteredNotesWithAddButton"
+          :key="note.id"
+          class="note-container"
+          :draggable="!note.isAddButton"
+        >
+          <template v-if="note && !note.isAddButton">
+            <!-- Render existing notes -->
+            <Note
+              :title="note.title"
+              :content="note.content"
+              :timestamp="note.timestamp"
+              :isEditing="note.isEditing"
+              :notesPerLine="notesPerLine"
+              @update-title="updateTitle(index, $event)"
+              @update-content="updateContent(index, $event)"
+              @update-time="updateTime(index, $event)"
+              @delete-note="deleteNote(index)"
+              @update-is-editing="updateIsEditing(index, $event)"
+            />
+          </template>
+          <template v-else-if="note && note.isAddButton">
+            <!-- Render add button -->
+            <div class="note add-note" @click="addNote">
+              <i class="fas fa-plus"></i>
+            </div>
+          </template>
         </div>
       </draggable>
     </div>
@@ -125,10 +130,10 @@ export default {
   data() {
     return {
       notes: [],
+      nextId: 1,
       notesPerLine: 5,
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
-      nextId: 1,
     };
   },
   computed: {
@@ -177,7 +182,15 @@ export default {
     },
     deleteNote(index) {
       this.notes.splice(index, 1);
+      this.reassignIds(); // Reassign IDs after deleting a note
+      this.nextId = this.notes.length + 1; // Update nextId to be length + 1
     },
+    reassignIds() {
+      this.notes = this.notes.map((note, index) => {
+        return { ...note, id: index + 1 }; // IDs start from 1
+      });
+    },
+
     sortNotes(criteria) {
       switch (criteria) {
         case "Most":
@@ -210,13 +223,11 @@ export default {
       this.notes.splice(event.newIndex, 0, movedNote);
     },
     addNote() {
-      console.log(this.filteredNotes)
-      console.log(this.filteredNotesWithAddButton)
       const newNote = {
         title: "",
         content: "",
-        timestamp: Date.now(),
         id: this.nextId,
+        timestamp: Date.now(),
         isEditing: false,
       };
       this.notes.push(newNote);
@@ -375,6 +386,14 @@ export default {
 
 .add-note:hover {
   background-color: #e0e0e0;
+}
+.dragging-ghost {
+  opacity: 0.6;
+  transform: scale(1.05);
+}
+
+.dragging-chosen {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 @media (max-width: 768px) {
   .header {
