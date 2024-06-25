@@ -74,12 +74,13 @@
         :disabled="isAnyNoteEditing"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
-        @end="handleNoteReorder"
+        @end="handleDragEnd"
         v-bind="$attrs"
         v-on="$listeners"
         ghost-class="dragging-ghost"
         chosen-class="dragging-chosen"
         handle=".note-container"
+        @start="handleDragStart"
       >
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
@@ -221,6 +222,13 @@ export default {
     handleNoteReorder(event) {
       const movedNote = this.notes.splice(event.oldIndex, 1)[0];
       this.notes.splice(event.newIndex, 0, movedNote);
+    },
+    handleDragStart(event) {
+      event.item.style.opacity = "0"; // Hide the note being dragged
+    },
+    handleDragEnd(event) {
+      event.item.style.opacity = "1"; // Restore the note's visibility
+      this.handleNoteReorder(event);
     },
     addNote() {
       const newNote = {
@@ -394,6 +402,38 @@ export default {
 
 .dragging-chosen {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, 
+.fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+@media (max-width: 600px) {
+  .notes-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (min-width: 600px) {
+  .notes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .notes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .notes-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 @media (max-width: 768px) {
   .header {
