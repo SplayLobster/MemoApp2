@@ -283,6 +283,7 @@ export default {
   align-items: center;
   justify-content: center;
   position: relative; /* Ensure position relative for absolute icon */
+  user-select: none;
 }
 
 .note:hover {
