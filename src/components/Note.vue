@@ -84,7 +84,6 @@ export default {
       newContent: this.content,
       formattedTimestamp: "",
       showEditIcon: false,
-      debounceTimeout: null,
       maxTitleLength: 25, // Example max length for title input
       maxCharsPerLine: 32, // Default char limit per line
     };
@@ -168,6 +167,7 @@ export default {
       this.newTitle = this.title;
       this.newContent = this.content;
       this.$emit("update-is-editing", false); // Close editing mode
+      this.showEditIcon = false;
     },
     startEdit() {
       this.newTitle = this.title;
@@ -181,6 +181,7 @@ export default {
       this.$emit("update-content", this.newContent);
       this.$emit("update-time", Date.now());
       this.$emit("update-is-editing", false); // Close editing mode
+      this.showEditIcon = false;
     },
 
     deleteNote() {
@@ -278,7 +279,7 @@ export default {
   position: relative;
   transition: box-shadow 0.3s ease;
   width: 100%; /* Note takes full width of its container */
-  max-width: 1000px;
+  max-width: 700px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,6 +358,7 @@ textarea {
   cursor: pointer;
   top: 5px;
   right: 5px;
+  font-size: 70%;
   color: red;
   background-color: transparent;
   border-color: transparent;
@@ -400,7 +402,7 @@ textarea {
   position: absolute;
   bottom: 5px;
   right: 5px;
-  font-size: 12px; /* Adjust the font size as needed */
+  font-size: 8px; /* Adjust the font size as needed */
 }
 @media (max-width: 600px) {
   .note {

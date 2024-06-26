@@ -91,6 +91,7 @@
           <template v-if="note && !note.isAddButton">
             <!-- Render existing notes -->
             <Note
+              v-if="note.type === 'classic'"
               :title="note.title"
               :content="note.content"
               :timestamp="note.timestamp"
@@ -102,11 +103,38 @@
               @delete-note="deleteNote(index)"
               @update-is-editing="updateIsEditing(index, $event)"
             />
+            <ListNote
+              v-else-if="note.type === 'list'"
+              :title="note.title"
+              :items="note.items"
+              :timestamp="note.timestamp"
+              :isEditing="note.isEditing"
+              :notesPerLine="notesPerLine"
+              @update-title="updateTitle(index, $event)"
+              @update-items="updateItems(index, $event)"
+              @update-time="updateTime(index, $event)"
+              @delete-note="deleteNote(index)"
+              @update-is-editing="updateIsEditing(index, $event)"
+            />
           </template>
           <template v-else-if="note && note.isAddButton">
             <!-- Render add button -->
-            <div class="note add-note" @click="addNote">
-              <i class="fas fa-plus"></i>
+            <div v-if="addingNoteType === null" class="note add-note">
+              <div @click="addClassicNote" class="add-button-classic">
+                <!-- Add Classic Note -->
+                <i class="fas fa-plus"></i>
+                <span>Add Classic Note</span>
+              </div>
+
+              <!-- Divider between Add Buttons -->
+              <div class="add-divider"></div>
+
+              <!-- Second Add Button -->
+              <div @click="addListNote" class="add-button-list">
+                <!-- Add List Note -->
+                <i class="fas fa-plus"></i>
+                <span>Add List Note</span>
+              </div>
             </div>
           </template>
         </div>
@@ -117,6 +145,7 @@
 
 <script>
 import Note from "../components/Note.vue";
+import ListNote from "../components/ListNote.vue";
 import SortDropdown from "../components/SortDropdown.vue";
 import draggable from "vuedraggable";
 
@@ -125,6 +154,7 @@ export default {
   name: "Home",
   components: {
     Note,
+    ListNote,
     SortDropdown,
     draggable,
   },
@@ -135,6 +165,7 @@ export default {
       notesPerLine: 5,
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
+      addingNoteType: null,
     };
   },
   computed: {
@@ -181,6 +212,9 @@ export default {
     updateTime(index, newTime) {
       this.notes[index].timestamp = newTime;
     },
+    updateItems(index, newItems) {
+      this.notes[index].items = newItems;
+    },
     deleteNote(index) {
       this.notes.splice(index, 1);
       this.reassignIds(); // Reassign IDs after deleting a note
@@ -225,21 +259,57 @@ export default {
     },
     handleDragStart(event) {
       event.item.style.opacity = "0"; // Hide the note being dragged
+      document.body.style.cursor = "grabbing";
+      event.item.style.cursor = "grabbing"; // Change cursor of dragged item
+      this.setDragImage(event);
     },
     handleDragEnd(event) {
       event.item.style.opacity = "1"; // Restore the note's visibility
+      document.body.style.cursor = "default";
+      event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
     },
+    addNoteType(type) {
+      this.addingNoteType = type;
+    },
+    setDragImage(event) {
+      // Set a transparent image as the drag image to remove ghosting
+      const dataTransfer =
+        event.dataTransfer || event.originalEvent.dataTransfer;
+      const transparentImg = new Image();
+      transparentImg.src =
+        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+      dataTransfer.setDragImage(transparentImg, 0, 0);
+    },
     addNote() {
+      // Reset any previous note addition state
+      this.addingNoteType = null;
+    },
+    addClassicNote() {
       const newNote = {
         title: "",
         content: "",
         id: this.nextId,
         timestamp: Date.now(),
         isEditing: false,
+        type: "classic", // Marking it as a classic note
       };
       this.notes.push(newNote);
       this.nextId++;
+      this.addNote(); // Reset addingNoteType
+    },
+    addListNote() {
+      const newNote = {
+        title: "",
+        items: [],
+        id: this.nextId,
+        timestamp: Date.now(),
+        isEditing: false,
+        type: "list", // Marking it as a list note
+      };
+      this.notes.push(newNote);
+      this.nextId++;
+      this.addNote(); // Reset addingNoteType
     },
   },
 };
@@ -269,6 +339,10 @@ export default {
   margin-bottom: 1.5%;
   height: 20px;
   position: relative;
+}
+
+.divider {
+  background-color: var(--text-color);
 }
 
 .logo {
@@ -353,7 +427,6 @@ export default {
   border: none;
   cursor: pointer;
   font-size: 16px;
-  color: yellow;
   transition: background-color 0.3s ease;
 }
 
@@ -369,6 +442,7 @@ export default {
 }
 
 .note-container {
+  cursor: grab; /* Default cursor for draggable notes */
   display: flex;
   justify-content: center;
   background-color: var(--note-background-color);
@@ -376,32 +450,65 @@ export default {
 }
 
 .add-note {
-  max-width: 1000px;
+  /* Styles for the add note container */
+  max-width: 700px;
   width: 100%;
   height: 120px;
   background-color: #f0f0f0;
   border: 2px dashed #ccc;
   color: #aaa;
-  font-size: 36px;
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  padding: 20px;
+  padding: 10px;
+  flex-direction: row-reverse;
 }
 
-.add-note:hover {
-  background-color: #e0e0e0;
+.add-button-classic,
+.add-button-list {
+  height: 100%;
+  flex-grow: 1; /* Take all available space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 10px; /* Adjust padding for inner content */
+  margin: 0 5px; /* Margin for spacing between buttons */
 }
+
+.add-button-classic:hover,
+.add-button-list:hover {
+  background-color: #565656; /* Background color on hover */
+}
+
+.add-note > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-divider {
+  border-left: 1px solid #ccc;
+  height: 120%; /* Adjusted height for divider */
+  margin: 0 5px; /* Margin for spacing */
+}
+
 .dragging-ghost {
   opacity: 0.6;
   transform: scale(1.05);
 }
 
 .dragging-chosen {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.564);
+  border: 1px solid #e0e0e0;
 }
 .fade-enter-active,
 .fade-leave-active {
