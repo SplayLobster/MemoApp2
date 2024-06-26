@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const appCode = "app1"; // Codice dell'applicazione ONO
-const appDataName = "all_notes"; // Nome unico per l'appData che conterrà tutte le note
+const appCode = "note_test"; // Codice dell'applicazione ONO
+const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
 
 const apiClient = axios.create({
   baseURL: "http://139.59.150.152:7576/grpc/", // Ensure this URL is correct for your API
@@ -65,8 +65,7 @@ async function saveNotes(notes) {
 
 // Get all notes from the server
 async function getAllNotes() {
-  const getAllDataReq = { id: 3 };
-  const response = await makeONORequest("GetONOAppFromID", getAllDataReq);
+  const response = await makeONORequest("GetONOAppFromID", { id: 3 });
   console.log("Server response:", response); // Log the full server response
   return response;
 }
