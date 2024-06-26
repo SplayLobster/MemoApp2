@@ -148,6 +148,7 @@ import Note from "../components/Note.vue";
 import ListNote from "../components/ListNote.vue";
 import SortDropdown from "../components/SortDropdown.vue";
 import draggable from "vuedraggable";
+import { loadNotes, saveNotes } from "@/api/apiService";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -160,6 +161,7 @@ export default {
   },
   data() {
     return {
+      test: [],
       notes: [],
       nextId: 1,
       notesPerLine: 5,
@@ -186,13 +188,26 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
     // Check local storage for theme preference
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
+    try {
+      this.test = await loadNotes();
+    } catch (error) {
+      console.error("Errore durante il caricamento delle note:", error);
+    }
   },
   methods: {
+    async saveAllNotes() {
+      try {
+        await saveNotes(this.test);
+        console.log(this.test);
+      } catch (error) {
+        console.error("Errore durante il salvataggio delle note:", error);
+      }
+    },
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
       this.applyTheme();
