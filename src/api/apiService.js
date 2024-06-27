@@ -16,62 +16,73 @@ const apiClient = axios.create({
 // Load notes from the server
 async function loadNotes() {
   try {
-    const notesResponse = await getAllNotes();
+    const notesResponse = await getAllNotes(); // Fetch notes from API
+    const responseArray = JSON.parse(notesResponse.data);
+    console.log(notesResponse);
+    console.log(responseArray);
+    if (
+      responseArray &&
+      Array.isArray(responseArray) &&
+      responseArray.length === 2
+    ) {
+      const notes = responseArray[0]; // Array of notes
+      const occupancyStatus = responseArray[1][0]?.isOccupied || false; // Extract isOccupied value, default to false if not present
 
-    const notes = notesResponse.data;
+      console.log("Notes:", notes);
+      console.log("Occupancy Status:", occupancyStatus);
 
-    if (notes) {
-      try {
-        return JSON.parse(notes);
-      } catch (error) {
-        console.error("Errore nel parsing della nota:", error);
-        return null;
-      }
+      return {
+        notes,
+        occupancyStatus,
+      };
+    } else {
+      console.error("Invalid server response format");
+      return null;
     }
   } catch (error) {
-    console.error("Errore nel caricamento delle note:", error);
+    console.error("Error loading notes:", error);
     return null;
   }
 }
 // Save notes to the server
-// Save notes to the server
-async function saveNotes(notes) {
+async function saveNotes(notes, isOccupiedFromServer) {
   try {
     // Prepara i dati delle note
-    const allNotes = notes
-      .map((note) => {
-        if (note.type === "classic") {
-          return {
-            id: note.id,
-            title: note.title,
-            content: note.content, // Contenuto della nota classica
-            timestamp: note.timestamp,
-            utente: note.utente,
-            isEditing: note.isEditing,
-            type: note.type,
-          };
-        } else if (note.type === "list") {
-          return {
-            id: note.id,
-            title: note.title,
-            items: note.items, // Array di elementi della lista
-            timestamp: note.timestamp,
-            utente: note.utente,
-            isEditing: note.isEditing,
-            type: note.type,
-          };
-        }
-        return null; // Gestione caso in cui il tipo di nota non è riconosciuto
-      })
-      .filter((note) => note !== null); // Filtra le note nulle
-
+    const allNotes = notes.map((note) => {
+      if (note.type === "classic") {
+        return {
+          id: note.id,
+          title: note.title,
+          content: note.content, // Contenuto della nota classica
+          timestamp: note.timestamp,
+          utente: note.utente,
+          isEditing: note.isEditing,
+          type: note.type,
+        };
+      } else if (note.type === "list") {
+        return {
+          id: note.id,
+          title: note.title,
+          items: note.items, // Array di elementi della lista
+          timestamp: note.timestamp,
+          utente: note.utente,
+          isEditing: note.isEditing,
+          type: note.type,
+        };
+      }
+      return null; // Gestione caso in cui il tipo di nota non è riconosciuto
+    });
+    console.log(allNotes);
     // Prepara i dati da salvare
     const dataToSave = {
       appCode: appCode,
       dataName: appDataName,
-      dataValue: JSON.stringify(allNotes), // Converti le note in stringa JSON
+      dataValue: JSON.stringify([
+        allNotes,
+        [{ isOccupied: isOccupiedFromServer }],
+      ]), // Converti le note in stringa JSON
     };
-
+    console.log(dataToSave);
     // Effettua la richiesta al server
     await makeONORequest("SetONOAppData", dataToSave);
   } catch (error) {

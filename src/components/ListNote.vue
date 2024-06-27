@@ -48,6 +48,7 @@
         class="edit-title"
         :id="generateUniqueId('title-input')"
         :maxlength="maxTitleLength"
+        :disabled="isOccupied"
       />
       <ul>
         <li v-for="(item, idx) in newItems" :key="idx">
@@ -61,6 +62,7 @@
               type="checkbox"
               v-model="newItems[idx].completed"
               class="item-checkbox"
+              :disabled="isOccupied"
             />
             <input
               v-model="newItems[idx].text"
@@ -68,11 +70,13 @@
               :class="{ completed: item.completed }"
               :id="generateUniqueId('item-input', idx)"
               placeholder="Enter item here"
+              :disabled="isOccupied"
             />
             <button
               v-if="showIcons"
               @click.stop="removeItem(idx)"
               class="remove-btn"
+              :disabled="isOccupied"
             >
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -112,6 +116,10 @@ export default {
     timestamp: {
       type: [String, Number],
       required: true,
+    },
+    isOccupied: {
+      type: Boolean,
+      default: false,
     },
     isEditing: {
       type: Boolean,

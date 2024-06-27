@@ -75,6 +75,10 @@ export default {
       type: [String, Number],
       required: true,
     },
+    isOccupied: {
+      type: Boolean,
+      default: false,
+    },
     isEditing: {
       type: Boolean,
       default: false,

@@ -97,7 +97,7 @@
               :timestamp="note.timestamp"
               :utente="note.utente"
               :isEditing="note.isEditing"
-              :isOccupied="note.isOccupied"
+              :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
               @update-title="updateTitle(index, $event)"
               @update-content="updateContent(index, $event)"
@@ -112,6 +112,7 @@
               :timestamp="note.timestamp"
               :utente="note.utente"
               :isEditing="note.isEditing"
+              :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
               @update-title="updateTitle(index, $event)"
               @update-items="updateItems(index, $event)"
@@ -170,6 +171,7 @@ export default {
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
+      isOccupiedFromServer: true,
     };
   },
   computed: {
@@ -199,12 +201,15 @@ export default {
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
     try {
-      this.notes = await loadNotes();
+      const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
+      this.notes = response.notes;
+      this.isOccupiedFromServer = response.occupancyStatus;
+
       if (this.notes.length > 0) {
         const lastId = Math.max(...this.notes.map((note) => note.id));
         this.nextId = lastId + 1;
       } else {
-        this.nextId = 1; // Se non ci sono note, inizia da 1
+        this.nextId = 1; // Inizia da 1 se non ci sono note
       }
     } catch (error) {
       console.error("Errore durante il caricamento delle note:", error);
@@ -218,7 +223,7 @@ export default {
   methods: {
     async saveAllNotes() {
       try {
-        await saveNotes(this.notes);
+        await saveNotes(this.notes, this.isOccupiedFromServer);
       } catch (error) {
         console.error("Errore durante il salvataggio delle note:", error);
       }
@@ -226,7 +231,7 @@ export default {
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 500); // Auto-save every 0.5 seconds
+      }, 1111500); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
