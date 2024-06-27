@@ -18,7 +18,7 @@ async function loadNotes() {
   try {
     const notesResponse = await getAllNotes(); // Fetch notes from API
     const responseArray = JSON.parse(notesResponse.data);
-
+    console.log(responseArray); //
     if (
       responseArray &&
       Array.isArray(responseArray) &&

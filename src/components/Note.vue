@@ -19,6 +19,7 @@
     <!-- Delete Button -->
     <button
       v-if="showEditIcon && !isEditing"
+      :disabled="isOccupied"
       class="delete-btn"
       @click.stop="deleteNote"
     >

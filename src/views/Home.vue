@@ -136,7 +136,9 @@
               @update-is-editing="updateIsEditing(index, $event)"
             />
           </template>
-          <template v-else-if="note && note.isAddButton">
+          <template
+            v-else-if="note && note.isAddButton && !isOccupiedFromServer"
+          >
             <!-- Render add button -->
             <div v-if="addingNoteType === null" class="note add-note">
               <div
@@ -195,6 +197,7 @@ export default {
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
       isOccupiedFromServer: null,
+      pollingInterval: null,
     };
   },
   computed: {
@@ -241,12 +244,25 @@ export default {
       console.error("Errore durante il caricamento delle note:", error);
     }
     this.startAutoSave();
+    this.startPolling();
   },
   beforeDestroy() {
     this.stopAutoSave(); // Clear the interval when component is destroyed
+    this.stopPolling();
   },
 
   methods: {
+    async loadNotesFromServer() {
+      try {
+        const response = await loadNotes();
+        console.log(response);
+        this.isOccupiedFromServer = response.occupancyStatus;
+        this.reassignIds();
+      } catch (error) {
+        console.error("Error loading notes:", error);
+      }
+    },
+
     async saveAllNotes() {
       try {
         await saveNotes(this.notes, this.isOccupiedFromServer);
@@ -254,10 +270,19 @@ export default {
         console.error("Errore durante il salvataggio delle note:", error);
       }
     },
+    startPolling() {
+      this.pollingInterval = setInterval(() => {
+        this.loadNotesFromServer();
+      }, 2000); // Auto-save every 0.5 seconds
+    },
+
+    stopPolling() {
+      clearInterval(this.pollingInterval);
+    },
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 5000); // Auto-save every 0.5 seconds
+      }, 500); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -283,8 +308,7 @@ export default {
     },
     updateIsOccupied(isOccupied) {
       this.isOccupiedFromServer = isOccupied;
-
-      this.saveAllNotes;
+      this.saveAllNotes(); // Save immediately when `isOccupied` changes
     },
     updateItems(index, newItems) {
       this.notes[index].items = newItems;
