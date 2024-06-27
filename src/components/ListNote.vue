@@ -28,6 +28,7 @@
           </div>
         </li>
       </ul>
+      <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
     </div>
     <!-- Delete Button -->
@@ -102,6 +103,10 @@ export default {
     },
     items: {
       type: Array,
+      required: true,
+    },
+    utente: {
+      type: String,
       required: true,
     },
     timestamp: {
@@ -197,6 +202,7 @@ export default {
       // Clear newTitle and newItems
       this.newTitle = "";
       this.newItems = [];
+      this.showEditIcon = false;
     },
     deleteNote() {
       this.$emit("delete-note");
@@ -446,6 +452,13 @@ input[type="checkbox"] {
 .cancel-btn:hover {
   border-color: #b9b9b92f;
   background-color: #b9b9b92f;
+}
+.utente {
+  color: rgb(196, 196, 196);
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  font-size: 8px; /* Adjust the font size as needed */
 }
 .timestamp {
   color: rgb(196, 196, 196);

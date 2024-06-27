@@ -13,6 +13,7 @@
       <h3 v-else class="placeholder">Title</h3>
       <pre v-if="content">{{ truncateContent(content, getCharLimit) }}</pre>
       <pre v-else class="placeholder">Write a note</pre>
+      <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
     </div>
     <!-- Delete Button -->
@@ -33,6 +34,7 @@
         class="edit-title"
         id="titleInput"
         :maxlength="maxTitleLength"
+        :disabled="isOccupied"
       />
       <textarea
         v-model="newContent"
@@ -41,6 +43,7 @@
         id="textInput"
         placeholder="Enter content here"
         @input="handleTextareaInput"
+        :disabled="isOccupied"
       ></textarea>
       <div class="edit-actions">
         <button class="delete-btn-modal" @click.stop="deleteNote">
@@ -61,6 +64,10 @@ export default {
       required: true,
     },
     content: {
+      type: String,
+      required: true,
+    },
+    utente: {
       type: String,
       required: true,
     },
@@ -396,7 +403,13 @@ textarea {
   border-color: #b9b9b92f;
   background-color: #b9b9b92f;
 }
-
+.utente {
+  color: rgb(196, 196, 196);
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  font-size: 8px; /* Adjust the font size as needed */
+}
 .timestamp {
   color: rgb(196, 196, 196);
   position: absolute;

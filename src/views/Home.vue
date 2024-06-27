@@ -95,7 +95,9 @@
               :title="note.title"
               :content="note.content"
               :timestamp="note.timestamp"
+              :utente="note.utente"
               :isEditing="note.isEditing"
+              :isOccupied="note.isOccupied"
               :notesPerLine="notesPerLine"
               @update-title="updateTitle(index, $event)"
               @update-content="updateContent(index, $event)"
@@ -108,6 +110,7 @@
               :title="note.title"
               :items="note.items"
               :timestamp="note.timestamp"
+              :utente="note.utente"
               :isEditing="note.isEditing"
               :notesPerLine="notesPerLine"
               @update-title="updateTitle(index, $event)"
@@ -161,9 +164,8 @@ export default {
   },
   data() {
     return {
-      test: [],
       notes: [],
-      nextId: 1,
+      nextId: 2,
       notesPerLine: 5,
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
@@ -175,11 +177,14 @@ export default {
       return this.notes.some((note) => note.isEditing);
     },
     filteredNotes() {
-      const query = this.searchQuery.toLowerCase();
-      if (!this.notes) return [];
-      return this.notes.filter((note) =>
-        note.title.toLowerCase().includes(query)
-      );
+      const query = this.searchQuery.toLowerCase().trim();
+      if (!query) return this.notes;
+
+      return this.notes.filter((note) => {
+        const titleMatch = note.title.toLowerCase().includes(query);
+        const utenteMatch = note.utente.toLowerCase().includes(query);
+        return titleMatch || utenteMatch;
+      });
     },
     filteredNotesWithAddButton() {
       const notesWithAddButton = [...this.filteredNotes];
@@ -194,19 +199,37 @@ export default {
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
     try {
-      this.test = await loadNotes();
+      this.notes = await loadNotes();
+      if (this.notes.length > 0) {
+        const lastId = Math.max(...this.notes.map((note) => note.id));
+        this.nextId = lastId + 1;
+      } else {
+        this.nextId = 1; // Se non ci sono note, inizia da 1
+      }
     } catch (error) {
       console.error("Errore durante il caricamento delle note:", error);
     }
+    this.startAutoSave();
   },
+  beforeDestroy() {
+    this.stopAutoSave(); // Clear the interval when component is destroyed
+  },
+
   methods: {
     async saveAllNotes() {
       try {
-        await saveNotes(this.test);
-        console.log(this.test);
+        await saveNotes(this.notes);
       } catch (error) {
         console.error("Errore durante il salvataggio delle note:", error);
       }
+    },
+    startAutoSave() {
+      this.autoSaveInterval = setInterval(() => {
+        this.saveAllNotes();
+      }, 500); // Auto-save every 0.5 seconds
+    },
+    stopAutoSave() {
+      clearInterval(this.autoSaveInterval);
     },
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
@@ -234,6 +257,7 @@ export default {
       this.notes.splice(index, 1);
       this.reassignIds(); // Reassign IDs after deleting a note
       this.nextId = this.notes.length + 1; // Update nextId to be length + 1
+      this.saveAllNotes();
     },
     reassignIds() {
       this.notes = this.notes.map((note, index) => {
@@ -283,6 +307,7 @@ export default {
       document.body.style.cursor = "default";
       event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
+      this.saveAllNotes();
     },
     addNoteType(type) {
       this.addingNoteType = type;
@@ -297,6 +322,7 @@ export default {
       dataTransfer.setDragImage(transparentImg, 0, 0);
     },
     addNote() {
+      this.saveAllNotes();
       // Reset any previous note addition state
       this.addingNoteType = null;
     },
@@ -306,6 +332,8 @@ export default {
         content: "",
         id: this.nextId,
         timestamp: Date.now(),
+        utente: "bomboclat",
+        isOccupied: false,
         isEditing: false,
         type: "classic", // Marking it as a classic note
       };
@@ -319,6 +347,7 @@ export default {
         items: [],
         id: this.nextId,
         timestamp: Date.now(),
+        utente: "bibi",
         isEditing: false,
         type: "list", // Marking it as a list note
       };
@@ -406,13 +435,15 @@ export default {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+  margin-right: 0.5%;
 }
-
 .notes-control {
   display: flex;
-  align-items: center;
+  align-items: left;
 }
-
+.sort-dropdown {
+  margin-left: auto;
+}
 .toggle-button {
   position: relative; /* Absolutely position within the .header */
   left: 0; /* Align to the right edge */
@@ -443,10 +474,6 @@ export default {
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
-}
-
-.sort-dropdown {
-  margin-left: auto;
 }
 
 .notes-grid {

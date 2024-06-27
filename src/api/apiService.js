@@ -1,14 +1,15 @@
 import axios from "axios";
 
 const appCode = "note_test"; // Codice dell'applicazione ONO
-const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
+const appDataName = "test"; // Nome unico per l'appData che conterrà tutte le note
 
 const apiClient = axios.create({
-  baseURL: "http://139.59.150.152:7576/grpc/", // Ensure this URL is correct for your API
+  baseURL: "http://139.59.150.152:7576/grpc/",
   headers: {
     "Content-Type": "application/json",
     "Grpc-Metadata-Content-Type": "application/grpc",
     Vary: "Origin",
+    // Authorization: `Bearer ${yourJWTToken}`, // Include your actual JWT token here if required
   },
 });
 
@@ -17,45 +18,61 @@ async function loadNotes() {
   try {
     const notesResponse = await getAllNotes();
 
-    // Check if notesResponse is an array and parse its contents if necessary
-    if (Array.isArray(notesResponse)) {
-      return notesResponse
-        .map((item) => {
-          try {
-            return JSON.parse(item.data);
-          } catch (error) {
-            console.error("Errore nel parsing della nota:", error);
-            return null; // Optionally handle parsing errors
-          }
-        })
-        .filter((note) => note !== null); // Remove notes that failed to parse
-    } else {
-      throw new Error("La risposta del server non è un array.");
+    const notes = notesResponse.data;
+
+    if (notes) {
+      try {
+        return JSON.parse(notes);
+      } catch (error) {
+        console.error("Errore nel parsing della nota:", error);
+        return null;
+      }
     }
   } catch (error) {
-    console.error("Errore durante il caricamento delle note:", error);
-    throw error;
+    console.error("Errore nel caricamento delle note:", error);
+    return null;
   }
 }
-
+// Save notes to the server
 // Save notes to the server
 async function saveNotes(notes) {
   try {
-    const allNotes = notes.map((note) => ({
-      id: note.id,
-      title: note.title,
-      content: note.content,
-      createdAt: note.createdAt,
-      isListNote: note.isListNote,
-    }));
+    // Prepara i dati delle note
+    const allNotes = notes
+      .map((note) => {
+        if (note.type === "classic") {
+          return {
+            id: note.id,
+            title: note.title,
+            content: note.content, // Contenuto della nota classica
+            timestamp: note.timestamp,
+            utente: note.utente,
+            isEditing: note.isEditing,
+            type: note.type,
+          };
+        } else if (note.type === "list") {
+          return {
+            id: note.id,
+            title: note.title,
+            items: note.items, // Array di elementi della lista
+            timestamp: note.timestamp,
+            utente: note.utente,
+            isEditing: note.isEditing,
+            type: note.type,
+          };
+        }
+        return null; // Gestione caso in cui il tipo di nota non è riconosciuto
+      })
+      .filter((note) => note !== null); // Filtra le note nulle
 
-    const appData = { notes: allNotes };
+    // Prepara i dati da salvare
     const dataToSave = {
       appCode: appCode,
       dataName: appDataName,
-      dataValue: JSON.stringify(appData),
+      dataValue: JSON.stringify(allNotes), // Converti le note in stringa JSON
     };
 
+    // Effettua la richiesta al server
     await makeONORequest("SetONOAppData", dataToSave);
   } catch (error) {
     console.error("Errore durante il salvataggio delle note:", error);
@@ -65,9 +82,11 @@ async function saveNotes(notes) {
 
 // Get all notes from the server
 async function getAllNotes() {
-  const response = await makeONORequest("GetONOAppFromID", { id: 3 });
-  console.log("Server response:", response); // Log the full server response
-  return response;
+  const response = await makeONORequest("GetONOAppDataFromCode", {
+    appCode: appCode,
+    dataName: appDataName,
+  });
+  return response.data;
 }
 
 // Make a request to the ONO server
