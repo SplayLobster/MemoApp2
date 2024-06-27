@@ -10,6 +10,7 @@
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
         <input
+          :disabled="isOccupiedFromServer"
           type="text"
           v-model="searchQuery"
           placeholder="Search"
@@ -17,7 +18,11 @@
           id="searchInput"
         />
       </div>
-      <button class="theme-toggle" @click="toggleTheme">
+      <button
+        class="theme-toggle"
+        @click="toggleTheme"
+        :disabled="isOccupiedFromServer"
+      >
         <i
           :class="[
             'fas',
@@ -26,7 +31,11 @@
           ]"
         ></i>
       </button>
-      <button class="toggle-button" @click="toggleNotesPerLine">
+      <button
+        class="toggle-button"
+        @click="toggleNotesPerLine"
+        :disabled="isOccupiedFromServer"
+      >
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
           src="../assets/list-dark.png"
@@ -62,7 +71,11 @@
     <!-- Controls Section -->
     <div class="controls">
       <div class="notes-control"></div>
-      <SortDropdown class="sort-dropdown" @select-sort-criteria="sortNotes" />
+      <SortDropdown
+        :isOccupied="isOccupiedFromServer"
+        class="sort-dropdown"
+        @select-sort-criteria="sortNotes"
+      />
     </div>
 
     <!-- Note Grid Section -->
@@ -124,7 +137,11 @@
           <template v-else-if="note && note.isAddButton">
             <!-- Render add button -->
             <div v-if="addingNoteType === null" class="note add-note">
-              <div @click="addClassicNote" class="add-button-classic">
+              <div
+                @click="addClassicNote"
+                :disabled="isOccupiedFromServer"
+                class="add-button-classic"
+              >
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add Classic Note</span>
@@ -134,7 +151,11 @@
               <div class="add-divider"></div>
 
               <!-- Second Add Button -->
-              <div @click="addListNote" class="add-button-list">
+              <div
+                @click="addListNote"
+                :disabled="isOccupiedFromServer"
+                class="add-button-list"
+              >
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add List Note</span>
@@ -166,12 +187,12 @@ export default {
   data() {
     return {
       notes: [],
-      nextId: 2,
+      nextId: 1,
       notesPerLine: 5,
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
-      isOccupiedFromServer: true,
+      isOccupiedFromServer: false,
     };
   },
   computed: {
@@ -203,8 +224,12 @@ export default {
     try {
       const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
       this.notes = response.notes;
-      this.isOccupiedFromServer = response.occupancyStatus;
-
+      if (response.occupancyStatus) {
+        console.log(response.occupancyStatus);
+        this.isOccupiedFromServer = response.occupancyStatus;
+      } else {
+        this.isOccupiedFromServer = false;
+      }
       if (this.notes.length > 0) {
         const lastId = Math.max(...this.notes.map((note) => note.id));
         this.nextId = lastId + 1;
@@ -338,7 +363,6 @@ export default {
         id: this.nextId,
         timestamp: Date.now(),
         utente: "bomboclat",
-        isOccupied: false,
         isEditing: false,
         type: "classic", // Marking it as a classic note
       };

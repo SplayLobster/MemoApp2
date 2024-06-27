@@ -18,6 +18,7 @@
     </div>
     <!-- Delete Button -->
     <button
+      :disabled="isOccupied"
       v-if="showEditIcon && !isEditing"
       class="delete-btn"
       @click.stop="deleteNote"
@@ -49,8 +50,16 @@
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
-        <button @click.stop="saveEdit" class="save-btn">Save</button>
+        <button
+          :disabled="isOccupied"
+          @click.stop="cancelEdit"
+          class="cancel-btn"
+        >
+          Cancel
+        </button>
+        <button :disabled="isOccupied" @click.stop="saveEdit" class="save-btn">
+          Save
+        </button>
       </div>
     </div>
   </div>
@@ -178,12 +187,14 @@ export default {
       this.newTitle = this.title;
       this.newContent = this.content;
       this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Emit false to parent
       this.showEditIcon = false;
     },
     startEdit() {
       this.newTitle = this.title;
       this.newContent = this.content;
       this.$emit("update-is-editing", true);
+      this.$emit("update-is-occupied", true); // Emit true to parent
     },
 
     saveEdit() {
@@ -197,6 +208,7 @@ export default {
 
     deleteNote() {
       this.$emit("delete-note");
+      this.$emit("update-is-occupied", false); // Emit false to parent
     },
     handleClickOutside(event) {
       // Check if click is outside the modal content

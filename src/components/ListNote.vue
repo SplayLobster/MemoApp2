@@ -83,7 +83,7 @@
           </div>
         </li>
       </ul>
-      <button @click="addItem" class="add-btn">
+      <button :disabled="isOccupied" @click="addItem" class="add-btn">
         <i class="fa-solid fa-plus"></i>
       </button>
       <div class="edit-actions">
@@ -189,6 +189,7 @@ export default {
 
       // Set isEditing to true
       this.$emit("update-is-editing", true);
+      this.$emit("update-is-occupied", true); // Emit true to parent
     },
     cancelEdit() {
       // Reset newTitle and newItems
@@ -197,6 +198,7 @@ export default {
 
       // Set isEditing to false
       this.$emit("update-is-editing", false);
+      this.$emit("update-is-occupied", false); // Emit false to parent
     },
     saveEdit() {
       // Emit updated title and items
@@ -206,6 +208,7 @@ export default {
 
       // Set isEditing to false
       this.$emit("update-is-editing", false);
+      this.$emit("update-is-occupied", false); // Emit false to parent
 
       // Clear newTitle and newItems
       this.newTitle = "";
@@ -214,6 +217,7 @@ export default {
     },
     deleteNote() {
       this.$emit("delete-note");
+      this.$emit("update-is-occupied", false); // Emit false to parent
     },
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {

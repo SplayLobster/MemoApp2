@@ -18,8 +18,7 @@ async function loadNotes() {
   try {
     const notesResponse = await getAllNotes(); // Fetch notes from API
     const responseArray = JSON.parse(notesResponse.data);
-    console.log(notesResponse);
-    console.log(responseArray);
+
     if (
       responseArray &&
       Array.isArray(responseArray) &&
@@ -27,9 +26,6 @@ async function loadNotes() {
     ) {
       const notes = responseArray[0]; // Array of notes
       const occupancyStatus = responseArray[1][0]?.isOccupied || false; // Extract isOccupied value, default to false if not present
-
-      console.log("Notes:", notes);
-      console.log("Occupancy Status:", occupancyStatus);
 
       return {
         notes,
@@ -72,7 +68,6 @@ async function saveNotes(notes, isOccupiedFromServer) {
       }
       return null; // Gestione caso in cui il tipo di nota non è riconosciuto
     });
-    console.log(allNotes);
     // Prepara i dati da salvare
     const dataToSave = {
       appCode: appCode,
@@ -82,7 +77,7 @@ async function saveNotes(notes, isOccupiedFromServer) {
         [{ isOccupied: isOccupiedFromServer }],
       ]), // Converti le note in stringa JSON
     };
-    console.log(dataToSave);
+
     // Effettua la richiesta al server
     await makeONORequest("SetONOAppData", dataToSave);
   } catch (error) {
