@@ -77,7 +77,6 @@ async function saveNotes(notes, isOccupiedFromServer) {
         [{ isOccupied: isOccupiedFromServer }],
       ]), // Converti le note in stringa JSON
     };
-
     // Effettua la richiesta al server
     await makeONORequest("SetONOAppData", dataToSave);
   } catch (error) {

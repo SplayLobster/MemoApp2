@@ -18,7 +18,6 @@
     </div>
     <!-- Delete Button -->
     <button
-      :disabled="isOccupied"
       v-if="showEditIcon && !isEditing"
       class="delete-btn"
       @click.stop="deleteNote"
@@ -35,7 +34,6 @@
         class="edit-title"
         id="titleInput"
         :maxlength="maxTitleLength"
-        :disabled="isOccupied"
       />
       <textarea
         v-model="newContent"
@@ -44,22 +42,13 @@
         id="textInput"
         placeholder="Enter content here"
         @input="handleTextareaInput"
-        :disabled="isOccupied"
       ></textarea>
       <div class="edit-actions">
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button
-          :disabled="isOccupied"
-          @click.stop="cancelEdit"
-          class="cancel-btn"
-        >
-          Cancel
-        </button>
-        <button :disabled="isOccupied" @click.stop="saveEdit" class="save-btn">
-          Save
-        </button>
+        <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
+        <button @click.stop="saveEdit" class="save-btn">Save</button>
       </div>
     </div>
   </div>
@@ -86,7 +75,6 @@ export default {
     },
     isOccupied: {
       type: Boolean,
-      default: false,
     },
     isEditing: {
       type: Boolean,
@@ -187,14 +175,16 @@ export default {
       this.newTitle = this.title;
       this.newContent = this.content;
       this.$emit("update-is-editing", false); // Close editing mode
-      this.$emit("update-is-occupied", false); // Emit false to parent
+      this.$emit("update-is-occupied", false);
       this.showEditIcon = false;
     },
     startEdit() {
-      this.newTitle = this.title;
-      this.newContent = this.content;
-      this.$emit("update-is-editing", true);
-      this.$emit("update-is-occupied", true); // Emit true to parent
+      if (!this.isOccupied) {
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-editing", true);
+        this.newTitle = this.title;
+        this.newContent = this.content;
+      }
     },
 
     saveEdit() {
@@ -203,18 +193,21 @@ export default {
       this.$emit("update-content", this.newContent);
       this.$emit("update-time", Date.now());
       this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing mode
       this.showEditIcon = false;
     },
 
     deleteNote() {
       this.$emit("delete-note");
-      this.$emit("update-is-occupied", false); // Emit false to parent
+      this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing mode
     },
     handleClickOutside(event) {
       // Check if click is outside the modal content
       if (!event.target.closest(".modal-content")) {
         this.saveEdit(); // Save changes before closing
-        this.$emit("update-is-editing", false); // Close modal
+        this.$emit("update-is-editing", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
       }
     },
   },

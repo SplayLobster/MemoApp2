@@ -48,7 +48,6 @@
         class="edit-title"
         :id="generateUniqueId('title-input')"
         :maxlength="maxTitleLength"
-        :disabled="isOccupied"
       />
       <ul>
         <li v-for="(item, idx) in newItems" :key="idx">
@@ -62,7 +61,6 @@
               type="checkbox"
               v-model="newItems[idx].completed"
               class="item-checkbox"
-              :disabled="isOccupied"
             />
             <input
               v-model="newItems[idx].text"
@@ -70,20 +68,18 @@
               :class="{ completed: item.completed }"
               :id="generateUniqueId('item-input', idx)"
               placeholder="Enter item here"
-              :disabled="isOccupied"
             />
             <button
               v-if="showIcons"
               @click.stop="removeItem(idx)"
               class="remove-btn"
-              :disabled="isOccupied"
             >
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         </li>
       </ul>
-      <button :disabled="isOccupied" @click="addItem" class="add-btn">
+      <button @click="addItem" class="add-btn">
         <i class="fa-solid fa-plus"></i>
       </button>
       <div class="edit-actions">
@@ -119,7 +115,6 @@ export default {
     },
     isOccupied: {
       type: Boolean,
-      default: false,
     },
     isEditing: {
       type: Boolean,
@@ -183,13 +178,14 @@ export default {
       return `${prefix}-${this._uid}-${index}`;
     },
     startEdit() {
-      // Populate newTitle and newItems with current props values
-      this.newTitle = this.title;
-      this.newItems = this.items.map((item) => ({ ...item }));
+      if (!this.isOccupied) {
+        this.newTitle = this.title;
+        this.newItems = this.items.map((item) => ({ ...item }));
 
-      // Set isEditing to true
-      this.$emit("update-is-editing", true);
-      this.$emit("update-is-occupied", true); // Emit true to parent
+        // Set isEditing to true
+        this.$emit("update-is-editing", true);
+        this.$emit("update-is-occupied", true); // Emit true to parent
+      }
     },
     cancelEdit() {
       // Reset newTitle and newItems

@@ -84,7 +84,7 @@
         :value="filteredNotesWithAddButton"
         class="notes-grid"
         group="notes"
-        :disabled="isAnyNoteEditing"
+        :disabled="isAnyNoteEditing || isOccupiedFromServer"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
@@ -116,6 +116,7 @@
               @update-content="updateContent(index, $event)"
               @update-time="updateTime(index, $event)"
               @delete-note="deleteNote(index)"
+              @update-is-occupied="updateIsOccupied($event)"
               @update-is-editing="updateIsEditing(index, $event)"
             />
             <ListNote
@@ -131,6 +132,7 @@
               @update-items="updateItems(index, $event)"
               @update-time="updateTime(index, $event)"
               @delete-note="deleteNote(index)"
+              @update-is-occupied="updateIsOccupied($event)"
               @update-is-editing="updateIsEditing(index, $event)"
             />
           </template>
@@ -192,7 +194,7 @@ export default {
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
-      isOccupiedFromServer: false,
+      isOccupiedFromServer: null,
     };
   },
   computed: {
@@ -225,7 +227,6 @@ export default {
       const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
       this.notes = response.notes;
       if (response.occupancyStatus) {
-        console.log(response.occupancyStatus);
         this.isOccupiedFromServer = response.occupancyStatus;
       } else {
         this.isOccupiedFromServer = false;
@@ -256,7 +257,7 @@ export default {
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 1111500); // Auto-save every 0.5 seconds
+      }, 5000); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -279,6 +280,11 @@ export default {
     },
     updateTime(index, newTime) {
       this.notes[index].timestamp = newTime;
+    },
+    updateIsOccupied(isOccupied) {
+      this.isOccupiedFromServer = isOccupied;
+
+      this.saveAllNotes;
     },
     updateItems(index, newItems) {
       this.notes[index].items = newItems;
