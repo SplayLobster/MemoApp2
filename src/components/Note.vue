@@ -124,7 +124,10 @@ export default {
   mounted() {
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
   },
-
+  beforeDestroy() {
+    this.$emit("update-is-editing", false); // Close editing mode
+    this.$emit("update-is-occupied", false); // Close editing mode
+  },
   methods: {
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);

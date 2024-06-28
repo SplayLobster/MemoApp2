@@ -249,13 +249,13 @@ export default {
   beforeDestroy() {
     this.stopAutoSave(); // Clear the interval when component is destroyed
     this.stopPolling();
+    this.isOccupiedFromServer = false;
+    this.saveAllNotes;
   },
-
   methods: {
     async loadNotesFromServer() {
       try {
         const response = await loadNotes();
-        console.log(response);
         this.isOccupiedFromServer = response.occupancyStatus;
         this.reassignIds();
       } catch (error) {

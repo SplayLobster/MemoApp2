@@ -152,6 +152,10 @@ export default {
     this.newTitle = this.title;
     this.newItems = this.items.map((item) => ({ ...item }));
   },
+  beforeDestroy() {
+    this.$emit("update-is-editing", false); // Close editing mode
+    this.$emit("update-is-occupied", false); // Close editing mode
+  },
   methods: {
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
