@@ -92,13 +92,16 @@
         v-on="$listeners"
         ghost-class="dragging-ghost"
         chosen-class="dragging-chosen"
-        handle=".note-container"
+        handle=".note-container:not(.add-note-container)"
         @start="handleDragStart"
       >
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
-          :key="note.id"
-          class="note-container"
+          :key="note.id || `add-button-${index}`"
+          :class="[
+            'note-container',
+            note.isAddButton ? 'add-note-container' : '',
+          ]"
           :draggable="!note.isAddButton"
         >
           <template v-if="note && !note.isAddButton">
@@ -263,6 +266,9 @@ export default {
       try {
         const response = await loadNotes();
         this.isOccupiedFromServer = response.occupancyStatus;
+        if (!this.isOccupiedFromServer && !this.isAnyNoteEditing) {
+          this.notes = response.notes;
+        }
         this.reassignIds();
       } catch (error) {
         console.error("Error loading notes:", error);
@@ -300,7 +306,7 @@ export default {
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 1000); // Auto-save every 0.5 seconds
+      }, 1100); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -375,13 +381,31 @@ export default {
       this.notes.splice(event.newIndex, 0, movedNote);
     },
     handleDragStart(event) {
-      event.item.style.opacity = "0"; // Hide the note being dragged
+      // Ignore drag if the item is an add button
+      if (
+        event.item &&
+        event.item.firstChild &&
+        event.item.firstChild.classList.contains("add-note")
+      ) {
+        event.preventDefault();
+        return;
+      }
+      event.item.style.opacity = "0";
       document.body.style.cursor = "grabbing";
-      event.item.style.cursor = "grabbing"; // Change cursor of dragged item
+      event.item.style.cursor = "grabbing";
       this.setDragImage(event);
     },
     handleDragEnd(event) {
-      event.item.style.opacity = "1"; // Restore the note's visibility
+      // Ignore drag if the item is an add button
+      if (
+        event.item &&
+        event.item.firstChild &&
+        event.item.firstChild.classList.contains("add-note")
+      ) {
+        event.preventDefault();
+        return;
+      }
+      event.item.style.opacity = "1";
       document.body.style.cursor = "default";
       event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
@@ -482,15 +506,15 @@ export default {
   position: absolute;
   left: 10px;
   font-size: 14px;
-  color: #565656;
+  color: var(--icon-color);
 }
 
 .search-input {
   font-size: 16px;
   width: 450px;
   padding: 10px 18px 10px 40px; /* Added left padding for the icon */
-  background-color: var(--note-background-color);
-  border: 2px solid;
+  background-color: var(--search-bar-background-color);
+  border: 0px solid;
   border-color: var(--text-color);
   border-radius: 10px;
   color: var(--text-color);
@@ -500,11 +524,10 @@ export default {
 }
 
 .search-input:focus {
-  background-color: var(
-    --background-color
-  ); /* Change background color on focus */
+  color: var(--background-color);
+  background-color: #ffffff; /* Change background color on focus */
   border-color: var(--text-color); /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(136, 141, 148, 0.566); /* Add box shadow for highlighting */
+  box-shadow: 0 0 5px rgba(126, 131, 137, 0.566); /* Add box shadow for highlighting */
 }
 
 .controls {

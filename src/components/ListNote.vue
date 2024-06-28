@@ -17,6 +17,7 @@
           @click="toggleItemCompleted(idx)"
         >
           <input
+            :disabled="isOccupied"
             :id="generateUniqueId('checkbox', idx)"
             type="checkbox"
             @click.stop
@@ -201,8 +202,9 @@ export default {
       this.newItems = [];
 
       // Set isEditing to false
-      this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false); // Emit false to parent
+      this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-occupied", false);
+      this.showEditIcon = false;
     },
     saveEdit() {
       // Emit updated title and items
@@ -211,8 +213,10 @@ export default {
       this.$emit("update-time", Date.now());
 
       // Set isEditing to false
-      this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false); // Emit false to parent
+      this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing modegi
 
       // Clear newTitle and newItems
       this.newTitle = "";
@@ -229,6 +233,11 @@ export default {
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         this.saveEdit();
+        this.$emit("update-is-editing", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
       }
     },
     toggleItemCompleted(index) {

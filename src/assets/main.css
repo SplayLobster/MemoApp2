@@ -18,13 +18,17 @@ body {
   --background-color: #ffffff;
   --text-color: #393c43;
   --note-background-color: #ffffff;
+  --search-bar-background-color: #f1f3f4;
+  --icon-color: #393c43
 }
 
 /* Define dark theme variables */
 body.dark-theme {
   --background-color: #393c43;
   --text-color: #e8eaed;
+  --icon-color: #e8eaed;
   --note-background-color: #393c43;
+  --search-bar-background-color: #525355;
 }
 
 .theme-toggle i {
@@ -89,4 +93,13 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   font-family: Arial, sans-serif; /* Ensure a consistent font across the app */
+}
+.dragging {
+  opacity: 1 !important; /* Ensure full opacity when dragging */
+  transition: none; /* Disable any transition effect */
+  z-index: 1000; /* Ensure it's above other elements */
+}
+
+.dragging-ghost {
+  display: none; /* Hide the ghost element during drag */
 }
