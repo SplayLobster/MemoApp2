@@ -149,6 +149,8 @@ export default {
     },
   },
   mounted() {
+    this.$emit("update-is-occupied", false); // Close editing mode
+    this.$emit("update-is-editing", false); // Close editing mode
     this.newTitle = this.title;
     this.newItems = this.items.map((item) => ({ ...item }));
   },
@@ -188,7 +190,9 @@ export default {
 
         // Set isEditing to true
         this.$emit("update-is-editing", true);
-        this.$emit("update-is-occupied", true); // Emit true to parent
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
       }
     },
     cancelEdit() {
@@ -216,8 +220,11 @@ export default {
       this.showEditIcon = false;
     },
     deleteNote() {
-      this.$emit("delete-note");
-      this.$emit("update-is-occupied", false); // Emit false to parent
+      if (!this.isOccupied) {
+        this.$emit("delete-note");
+        this.$emit("update-is-editing", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Emit false to parent
+      }
     },
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {

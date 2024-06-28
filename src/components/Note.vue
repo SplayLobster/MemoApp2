@@ -122,6 +122,8 @@ export default {
   },
 
   mounted() {
+    this.$emit("update-is-occupied", false); // Close editing mode
+    this.$emit("update-is-editing", false); // Close editing mode
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
   },
   beforeDestroy() {
@@ -185,6 +187,11 @@ export default {
     startEdit() {
       if (!this.isOccupied) {
         this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-is-occupied", true);
         this.$emit("update-is-editing", true);
         this.newTitle = this.title;
         this.newContent = this.content;
@@ -198,19 +205,26 @@ export default {
       this.$emit("update-time", Date.now());
       this.$emit("update-is-editing", false); // Close editing mode
       this.$emit("update-is-occupied", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing mode
+      this.$emit("update-is-occupied", false); // Close editing modegi
       this.showEditIcon = false;
     },
 
     deleteNote() {
-      this.$emit("delete-note");
-      this.$emit("update-is-editing", false); // Close editing mode
-      this.$emit("update-is-occupied", false); // Close editing mode
+      if (!this.isOccupied) {
+        this.$emit("delete-note");
+        this.$emit("update-is-editing", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+      }
     },
     handleClickOutside(event) {
       // Check if click is outside the modal content
       if (!event.target.closest(".modal-content")) {
         this.saveEdit(); // Save changes before closing
         this.$emit("update-is-editing", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
+        this.$emit("update-is-occupied", false); // Close editing mode
         this.$emit("update-is-occupied", false); // Close editing mode
       }
     },

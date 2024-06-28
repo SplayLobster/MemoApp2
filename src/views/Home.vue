@@ -198,6 +198,7 @@ export default {
       addingNoteType: null,
       isOccupiedFromServer: null,
       pollingInterval: null,
+      utente: "",
     };
   },
   computed: {
@@ -226,6 +227,10 @@ export default {
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
+    this.isOccupiedFromServer = false;
+    let operatorName = sessionStorage.getItem("operatorName");
+    let operatorSurname = sessionStorage.getItem("operatorSurname");
+    this.utente = `${operatorName} ${operatorSurname}`;
     try {
       const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
       this.notes = response.notes;
@@ -249,6 +254,7 @@ export default {
   beforeDestroy() {
     this.stopAutoSave(); // Clear the interval when component is destroyed
     this.stopPolling();
+    this.loadAllNotes();
     this.isOccupiedFromServer = false;
     this.saveAllNotes;
   },
@@ -262,7 +268,19 @@ export default {
         console.error("Error loading notes:", error);
       }
     },
-
+    async loadAllNotes() {
+      try {
+        const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
+        this.notes = response.notes;
+        if (response.occupancyStatus) {
+          this.isOccupiedFromServer = response.occupancyStatus;
+        } else {
+          this.isOccupiedFromServer = false;
+        }
+      } catch (error) {
+        console.error("Errore durante il salvataggio delle note:", error);
+      }
+    },
     async saveAllNotes() {
       try {
         await saveNotes(this.notes, this.isOccupiedFromServer);
@@ -273,7 +291,7 @@ export default {
     startPolling() {
       this.pollingInterval = setInterval(() => {
         this.loadNotesFromServer();
-      }, 2000); // Auto-save every 0.5 seconds
+      }, 1200); // Auto-save every 0.5 seconds
     },
 
     stopPolling() {
@@ -282,7 +300,7 @@ export default {
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 500); // Auto-save every 0.5 seconds
+      }, 1000); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -392,7 +410,7 @@ export default {
         content: "",
         id: this.nextId,
         timestamp: Date.now(),
-        utente: "bomboclat",
+        utente: this.utente,
         isEditing: false,
         type: "classic", // Marking it as a classic note
       };
@@ -406,7 +424,7 @@ export default {
         items: [],
         id: this.nextId,
         timestamp: Date.now(),
-        utente: "bibi",
+        utente: this.utente,
         isEditing: false,
         type: "list", // Marking it as a list note
       };

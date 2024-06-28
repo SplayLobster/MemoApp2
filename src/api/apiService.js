@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const appCode = "note_test"; // Codice dell'applicazione ONO
-const appDataName = "test"; // Nome unico per l'appData che conterrà tutte le note
+const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
+sessionStorage.setItem("operatorName", "Mamma");
+sessionStorage.setItem("operatorSurname", "Mia");
 
 const apiClient = axios.create({
   baseURL: "http://139.59.150.152:7576/grpc/",
@@ -18,7 +20,6 @@ async function loadNotes() {
   try {
     const notesResponse = await getAllNotes(); // Fetch notes from API
     const responseArray = JSON.parse(notesResponse.data);
-    console.log(responseArray); //
     if (
       responseArray &&
       Array.isArray(responseArray) &&
@@ -26,7 +27,6 @@ async function loadNotes() {
     ) {
       const notes = responseArray[0]; // Array of notes
       const occupancyStatus = responseArray[1][0]?.isOccupied || false; // Extract isOccupied value, default to false if not present
-
       return {
         notes,
         occupancyStatus,
