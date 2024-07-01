@@ -27,7 +27,7 @@
     </button>
     <!-- Edit Modal -->
   </div>
-  <div v-else class="modal" @click.stop="handleClickOutside">
+  <div v-else-if="isLocalEditing" class="modal" @click.stop="handleClickOutside">
     <div class="modal-content">
       <input
         v-model="newTitle"
@@ -49,13 +49,20 @@
           <i class="fa-solid fa-trash-can"></i>
         </button>
         <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
-        <button @click.stop="saveEdit" class="save-btn">Save</button>
+        <button
+          :disabled="!isLocalEditing"
+          @click.stop="saveEdit"
+          class="save-btn"
+        >
+          Save
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import loadNotesFromServer from "../views/Home.vue"
 export default {
   props: {
     title: {
@@ -85,6 +92,7 @@ export default {
       type: Number,
       required: true,
     },
+    loadAllNotes: Function,
   },
 
   data() {
@@ -92,9 +100,11 @@ export default {
       newTitle: this.title,
       newContent: this.content,
       formattedTimestamp: "",
+      isLocalEditing: false, // Track local editing status
       showEditIcon: false,
       maxTitleLength: 25, // Example max length for title input
       maxCharsPerLine: 32, // Default char limit per line
+      pollingInterval: null,
     };
   },
   computed: {
@@ -119,9 +129,23 @@ export default {
     isEditing() {
       this.isEditing === this.isEditing;
     },
+    isOccupied(newVal) {
+      if (newVal && this.isLocalEditing) {
+        // Start polling if isOccupied becomes true and we are locally editing
+        this.pollingInterval = setInterval(() => {
+          if (!this.isOccupied) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+          }
+          loadNotesFromServer();
+          
+        }, 2000);
+      }
+    },
   },
 
   mounted() {
+    console.log(this.isOccupied);
     this.$emit("update-is-occupied", false); // Close editing mode
     this.$emit("update-is-editing", false); // Close editing mode
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
@@ -185,29 +209,36 @@ export default {
       this.showEditIcon = false;
     },
     startEdit() {
-      if (!this.isOccupied) {
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
+      console.log(this.isOccupied);
+        this.isLocalEditing = true; // Set local editing to true
         this.$emit("update-is-editing", true);
         this.newTitle = this.title;
         this.newContent = this.content;
-      }
     },
 
     saveEdit() {
-      this.isSaving = true; // Set saving flag to true
-      this.$emit("update-title", this.newTitle);
-      this.$emit("update-content", this.newContent);
-      this.$emit("update-time", Date.now());
-      this.$emit("update-is-editing", false); // Close editing mode
-      this.$emit("update-is-occupied", false); // Close editing mode
-      this.$emit("update-is-occupied", false); // Close editing mode
-      this.$emit("update-is-occupied", false); // Close editing modegi
-      this.showEditIcon = false;
+      if (!this.isOccupied) {
+        this.loadAllNotes();
+        this.$emit("update-is-occupied", true);
+        this.$emit("update-title", this.newTitle);
+        this.$emit("update-content", this.newContent);
+        console.log(this.newTitle, this.newContent);
+        this.$emit("update-time", Date.now());
+        this.$emit("update-is-editing", false);
+        console.log(this.isOccupied);
+        this.isLocalEditing = false;
+        this.showEditIcon = false;
+        this.$emit("update-is-occupied", false);
+      } else {
+        this.pollingInterval = setInterval(() => {
+          if (!this.isOccupied) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+          }
+          loadNotesFromServer();
+        }, 2000);
+        alert("Cannot save while editing. Waiting for unlock...");
+      }
     },
 
     deleteNote() {
@@ -223,9 +254,8 @@ export default {
         this.saveEdit(); // Save changes before closing
         this.$emit("update-is-editing", false); // Close editing mode
         this.$emit("update-is-occupied", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Close editing mode
+        this.isLocalEditing = false; // Reset local editing flag
+        this.showEditIcon = false;
       }
     },
   },

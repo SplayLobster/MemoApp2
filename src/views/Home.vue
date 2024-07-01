@@ -10,7 +10,6 @@
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
         <input
-          :disabled="isOccupiedFromServer"
           type="text"
           v-model="searchQuery"
           placeholder="Search"
@@ -18,11 +17,7 @@
           id="searchInput"
         />
       </div>
-      <button
-        class="theme-toggle"
-        @click="toggleTheme"
-        :disabled="isOccupiedFromServer"
-      >
+      <button class="theme-toggle" @click="toggleTheme">
         <i
           :class="[
             'fas',
@@ -31,11 +26,7 @@
           ]"
         ></i>
       </button>
-      <button
-        class="toggle-button"
-        @click="toggleNotesPerLine"
-        :disabled="isOccupiedFromServer"
-      >
+      <button class="toggle-button" @click="toggleNotesPerLine">
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
           src="../assets/list-dark.png"
@@ -71,11 +62,7 @@
     <!-- Controls Section -->
     <div class="controls">
       <div class="notes-control"></div>
-      <SortDropdown
-        :isOccupied="isOccupiedFromServer"
-        class="sort-dropdown"
-        @select-sort-criteria="sortNotes"
-      />
+      <SortDropdown class="sort-dropdown" @select-sort-criteria="sortNotes" />
     </div>
 
     <!-- Note Grid Section -->
@@ -84,7 +71,7 @@
         :value="filteredNotesWithAddButton"
         class="notes-grid"
         group="notes"
-        :disabled="isAnyNoteEditing || isOccupiedFromServer"
+        :disabled="isAnyNoteEditing"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
@@ -115,6 +102,7 @@
               :isEditing="note.isEditing"
               :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
+              :load-all-notes="loadAllNotes"
               @update-title="updateTitle(index, $event)"
               @update-content="updateContent(index, $event)"
               @update-time="updateTime(index, $event)"
@@ -140,15 +128,11 @@
             />
           </template>
           <template
-            v-else-if="note && note.isAddButton && !isOccupiedFromServer"
+            v-else-if="note && note.isAddButton"
           >
             <!-- Render add button -->
             <div v-if="addingNoteType === null" class="note add-note">
-              <div
-                @click="addClassicNote"
-                :disabled="isOccupiedFromServer"
-                class="add-button-classic"
-              >
+              <div @click="addClassicNote" class="add-button-classic">
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add Classic Note</span>
@@ -158,11 +142,7 @@
               <div class="add-divider"></div>
 
               <!-- Second Add Button -->
-              <div
-                @click="addListNote"
-                :disabled="isOccupiedFromServer"
-                class="add-button-list"
-              >
+              <div @click="addListNote" class="add-button-list">
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add List Note</span>
@@ -199,7 +179,7 @@ export default {
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
-      isOccupiedFromServer: null,
+      isOccupiedFromServer: false,
       pollingInterval: null,
       utente: "",
     };
@@ -262,24 +242,13 @@ export default {
     this.saveAllNotes;
   },
   methods: {
-    async loadNotesFromServer() {
-      try {
-        const response = await loadNotes();
-        this.isOccupiedFromServer = response.occupancyStatus;
-        if (!this.isOccupiedFromServer && !this.isAnyNoteEditing) {
-          this.notes = response.notes;
-        }
-        this.reassignIds();
-      } catch (error) {
-        console.error("Error loading notes:", error);
-      }
-    },
     async loadAllNotes() {
       try {
         const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
         this.notes = response.notes;
         if (response.occupancyStatus) {
           this.isOccupiedFromServer = response.occupancyStatus;
+          
         } else {
           this.isOccupiedFromServer = false;
         }
@@ -296,17 +265,20 @@ export default {
     },
     startPolling() {
       this.pollingInterval = setInterval(() => {
-        this.loadNotesFromServer();
-      }, 1200); // Auto-save every 0.5 seconds
+        loadNotesFromServer();
+      }, 170); // Auto-save every 0.12 seconds
     },
 
     stopPolling() {
       clearInterval(this.pollingInterval);
     },
+    loadNotes() {
+      this.loadAllNotes();
+    },
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      }, 1100); // Auto-save every 0.5 seconds
+      },50); // Auto-save every 0.11 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -323,6 +295,7 @@ export default {
     },
     updateTitle(index, newTitle) {
       this.notes[index].title = newTitle;
+      console.log(this.notes)
     },
     updateContent(index, newContent) {
       this.notes[index].content = newContent;
@@ -458,6 +431,19 @@ export default {
     },
   },
 };
+export async function loadNotesFromServer() {
+  try {
+    const response = await loadNotes();
+    this.isOccupiedFromServer = response.occupancyStatus;
+    console.log(this.isOccupiedFromServer)
+    if (!this.isOccupiedFromServer && !this.isAnyNoteEditing) {
+      //this.notes = response.notes;
+    }
+    this.reassignIds();
+  } catch (error) {
+    //console.error("Error loading notes:", error);
+  }
+}
 </script>
 
 <style scoped>
