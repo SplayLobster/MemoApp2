@@ -84,7 +84,37 @@ async function saveNotes(notes, isOccupiedFromServer) {
     throw error;
   }
 }
+async function updateNotes(noteId, updatedNote) {
+  console.log(noteId);
+  try {
+    const { notes, occupancyStatus } = await loadNotes(); // Load current notes
+    if (!notes) {
+      throw new Error("Failed to load notes");
+    }
+    // Check if the system is occupied
+    if (occupancyStatus) {
+      console.warn("System is occupied, retrying...");
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Sleep 500 milliseconds
+      return updateNotes(noteId, updatedNote); // Retry the operation
+    }
+    // Update occupancy status to true before modifying
+    await saveNotes(notes, true);
+    // Find index of the note to update
 
+    const noteIndex = notes.findIndex((note) => note.id === noteId);
+
+    if (noteIndex === -1) {
+      throw new Error("Note not found");
+    }
+    // Update the note
+    notes[noteIndex] = { ...notes[noteIndex], ...updatedNote };
+    // Save updated notes back to server with occupancy status set to false
+    await saveNotes(notes, false);
+  } catch (error) {
+    console.error("Error updating notes:", error);
+    throw error;
+  }
+}
 // Get all notes from the server
 async function getAllNotes() {
   const response = await makeONORequest("GetONOAppDataFromCode", {
@@ -105,4 +135,4 @@ async function makeONORequest(endpoint, requestData) {
   }
 }
 
-export { loadNotes, saveNotes };
+export { loadNotes, saveNotes, updateNotes };

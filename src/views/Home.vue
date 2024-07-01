@@ -10,6 +10,7 @@
       <div class="search-container">
         <i class="fas fa-search search-icon"></i>
         <input
+          :disabled="isOccupiedFromServer"
           type="text"
           v-model="searchQuery"
           placeholder="Search"
@@ -17,7 +18,11 @@
           id="searchInput"
         />
       </div>
-      <button class="theme-toggle" @click="toggleTheme">
+      <button
+        class="theme-toggle"
+        @click="toggleTheme"
+        :disabled="isOccupiedFromServer"
+      >
         <i
           :class="[
             'fas',
@@ -62,7 +67,11 @@
     <!-- Controls Section -->
     <div class="controls">
       <div class="notes-control"></div>
-      <SortDropdown class="sort-dropdown" @select-sort-criteria="sortNotes" />
+      <SortDropdown
+        :isOccupied="isOccupiedFromServer"
+        class="sort-dropdown"
+        @select-sort-criteria="sortNotes"
+      />
     </div>
 
     <!-- Note Grid Section -->
@@ -71,7 +80,7 @@
         :value="filteredNotesWithAddButton"
         class="notes-grid"
         group="notes"
-        :disabled="isAnyNoteEditing"
+        :disabled="isAnyNoteEditing || isOccupiedFromServer"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
@@ -79,16 +88,13 @@
         v-on="$listeners"
         ghost-class="dragging-ghost"
         chosen-class="dragging-chosen"
-        handle=".note-container:not(.add-note-container)"
+        handle=".note-container"
         @start="handleDragStart"
       >
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
-          :key="note.id || `add-button-${index}`"
-          :class="[
-            'note-container',
-            note.isAddButton ? 'add-note-container' : '',
-          ]"
+          :key="note.id"
+          class="note-container"
           :draggable="!note.isAddButton"
         >
           <template v-if="note && !note.isAddButton">
@@ -102,7 +108,7 @@
               :isEditing="note.isEditing"
               :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
-              :load-all-notes="loadAllNotes"
+              :note-id="note.id"
               @update-title="updateTitle(index, $event)"
               @update-content="updateContent(index, $event)"
               @update-time="updateTime(index, $event)"
@@ -128,11 +134,15 @@
             />
           </template>
           <template
-            v-else-if="note && note.isAddButton"
+            v-else-if="note && note.isAddButton && !isOccupiedFromServer"
           >
             <!-- Render add button -->
             <div v-if="addingNoteType === null" class="note add-note">
-              <div @click="addClassicNote" class="add-button-classic">
+              <div
+                @click="addClassicNote"
+                :disabled="isOccupiedFromServer"
+                class="add-button-classic"
+              >
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add Classic Note</span>
@@ -142,7 +152,11 @@
               <div class="add-divider"></div>
 
               <!-- Second Add Button -->
-              <div @click="addListNote" class="add-button-list">
+              <div
+                @click="addListNote"
+                :disabled="isOccupiedFromServer"
+                class="add-button-list"
+              >
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add List Note</span>
@@ -179,7 +193,7 @@ export default {
       searchQuery: "",
       isDarkTheme: localStorage.getItem("theme") === "dark",
       addingNoteType: null,
-      isOccupiedFromServer: false,
+      isOccupiedFromServer: null,
       pollingInterval: null,
       utente: "",
     };
@@ -242,13 +256,21 @@ export default {
     this.saveAllNotes;
   },
   methods: {
+    async loadNotesFromServer() {
+      try {
+        const response = await loadNotes();
+        this.isOccupiedFromServer = response.occupancyStatus;
+        this.reassignIds();
+      } catch (error) {
+        console.error("Error loading notes:", error);
+      }
+    },
     async loadAllNotes() {
       try {
         const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
         this.notes = response.notes;
         if (response.occupancyStatus) {
           this.isOccupiedFromServer = response.occupancyStatus;
-          
         } else {
           this.isOccupiedFromServer = false;
         }
@@ -265,20 +287,17 @@ export default {
     },
     startPolling() {
       this.pollingInterval = setInterval(() => {
-        loadNotesFromServer();
-      }, 170); // Auto-save every 0.12 seconds
+        this.loadNotesFromServer();
+      }, 120); // Auto-save every 0.5 seconds
     },
 
     stopPolling() {
       clearInterval(this.pollingInterval);
     },
-    loadNotes() {
-      this.loadAllNotes();
-    },
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => {
         this.saveAllNotes();
-      },50); // Auto-save every 0.11 seconds
+      }, 100); // Auto-save every 0.5 seconds
     },
     stopAutoSave() {
       clearInterval(this.autoSaveInterval);
@@ -295,7 +314,6 @@ export default {
     },
     updateTitle(index, newTitle) {
       this.notes[index].title = newTitle;
-      console.log(this.notes)
     },
     updateContent(index, newContent) {
       this.notes[index].content = newContent;
@@ -354,31 +372,13 @@ export default {
       this.notes.splice(event.newIndex, 0, movedNote);
     },
     handleDragStart(event) {
-      // Ignore drag if the item is an add button
-      if (
-        event.item &&
-        event.item.firstChild &&
-        event.item.firstChild.classList.contains("add-note")
-      ) {
-        event.preventDefault();
-        return;
-      }
-      event.item.style.opacity = "0";
+      event.item.style.opacity = "0"; // Hide the note being dragged
       document.body.style.cursor = "grabbing";
-      event.item.style.cursor = "grabbing";
+      event.item.style.cursor = "grabbing"; // Change cursor of dragged item
       this.setDragImage(event);
     },
     handleDragEnd(event) {
-      // Ignore drag if the item is an add button
-      if (
-        event.item &&
-        event.item.firstChild &&
-        event.item.firstChild.classList.contains("add-note")
-      ) {
-        event.preventDefault();
-        return;
-      }
-      event.item.style.opacity = "1";
+      event.item.style.opacity = "1"; // Restore the note's visibility
       document.body.style.cursor = "default";
       event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
@@ -431,19 +431,6 @@ export default {
     },
   },
 };
-export async function loadNotesFromServer() {
-  try {
-    const response = await loadNotes();
-    this.isOccupiedFromServer = response.occupancyStatus;
-    console.log(this.isOccupiedFromServer)
-    if (!this.isOccupiedFromServer && !this.isAnyNoteEditing) {
-      //this.notes = response.notes;
-    }
-    this.reassignIds();
-  } catch (error) {
-    //console.error("Error loading notes:", error);
-  }
-}
 </script>
 
 <style scoped>
@@ -492,15 +479,15 @@ export async function loadNotesFromServer() {
   position: absolute;
   left: 10px;
   font-size: 14px;
-  color: var(--icon-color);
+  color: #565656;
 }
 
 .search-input {
   font-size: 16px;
   width: 450px;
   padding: 10px 18px 10px 40px; /* Added left padding for the icon */
-  background-color: var(--search-bar-background-color);
-  border: 0px solid;
+  background-color: var(--note-background-color);
+  border: 2px solid;
   border-color: var(--text-color);
   border-radius: 10px;
   color: var(--text-color);
@@ -510,10 +497,11 @@ export async function loadNotesFromServer() {
 }
 
 .search-input:focus {
-  color: var(--background-color);
-  background-color: #ffffff; /* Change background color on focus */
+  background-color: var(
+    --background-color
+  ); /* Change background color on focus */
   border-color: var(--text-color); /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(126, 131, 137, 0.566); /* Add box shadow for highlighting */
+  box-shadow: 0 0 5px rgba(136, 141, 148, 0.566); /* Add box shadow for highlighting */
 }
 
 .controls {

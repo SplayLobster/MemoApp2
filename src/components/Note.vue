@@ -27,7 +27,7 @@
     </button>
     <!-- Edit Modal -->
   </div>
-  <div v-else-if="isLocalEditing" class="modal" @click.stop="handleClickOutside">
+  <div v-else class="modal" @click.stop="handleClickOutside">
     <div class="modal-content">
       <input
         v-model="newTitle"
@@ -49,22 +49,22 @@
           <i class="fa-solid fa-trash-can"></i>
         </button>
         <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
-        <button
-          :disabled="!isLocalEditing"
-          @click.stop="saveEdit"
-          class="save-btn"
-        >
-          Save
-        </button>
+        <button @click.stop="saveEdit" class="save-btn">Save</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import loadNotesFromServer from "../views/Home.vue"
+import { loadNotes, saveNotes } from "../api/apiService.js";
+
 export default {
   props: {
+    noteId: {
+      // Added noteId prop to identify the note
+      type: [String, Number],
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -92,29 +92,16 @@ export default {
       type: Number,
       required: true,
     },
-    loadAllNotes: Function,
   },
-
   data() {
     return {
       newTitle: this.title,
       newContent: this.content,
       formattedTimestamp: "",
-      isLocalEditing: false, // Track local editing status
       showEditIcon: false,
-      maxTitleLength: 25, // Example max length for title input
-      maxCharsPerLine: 32, // Default char limit per line
-      pollingInterval: null,
+      maxTitleLength: 25,
+      maxCharsPerLine: 32,
     };
-  },
-  computed: {
-    truncatedContent() {
-      if (this.content.length <= this.maxCharsPerLine) {
-        return this.content;
-      } else {
-        return this.content.substring(0, this.maxCharsPerLine);
-      }
-    },
   },
   watch: {
     title(newVal) {
@@ -129,32 +116,53 @@ export default {
     isEditing() {
       this.isEditing === this.isEditing;
     },
-    isOccupied(newVal) {
-      if (newVal && this.isLocalEditing) {
-        // Start polling if isOccupied becomes true and we are locally editing
-        this.pollingInterval = setInterval(() => {
-          if (!this.isOccupied) {
-            clearInterval(this.pollingInterval);
-            this.pollingInterval = null;
-          }
-          loadNotesFromServer();
-          
-        }, 2000);
-      }
-    },
   },
-
   mounted() {
-    console.log(this.isOccupied);
-    this.$emit("update-is-occupied", false); // Close editing mode
-    this.$emit("update-is-editing", false); // Close editing mode
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
   },
-  beforeDestroy() {
-    this.$emit("update-is-editing", false); // Close editing mode
-    this.$emit("update-is-occupied", false); // Close editing mode
-  },
   methods: {
+    async saveEdit() {
+      const editedNote = {
+        id: this.noteId,
+        title: this.newTitle,
+        content: this.newContent,
+        timestamp: Date.now(),
+        utente: this.utente,
+      };
+
+      try {
+        // Update only the specific note
+        const { notes } = await loadNotes();
+        const noteIndex = notes.findIndex((note) => note.id === this.noteId);
+        
+        if (noteIndex !== -1) {
+          notes[noteIndex] = editedNote;
+          await saveNotes(notes, false);
+        }
+
+        this.$emit("update-title", this.newTitle);
+        this.$emit("update-content", this.newContent);
+        this.$emit("update-time", Date.now());
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
+        this.showEditIcon = false;
+      } catch (error) {
+        console.error("Failed to save note:", error);
+      }
+    },
+    async deleteNote() {
+      try {
+        // Delete only the specific note
+        const { notes } = await loadNotes();
+        const updatedNotes = notes.filter((note) => note.id !== this.noteId);
+        await saveNotes(updatedNotes, false);
+        this.$emit("delete-note");
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
+      } catch (error) {
+        console.error("Failed to delete note:", error);
+      }
+    },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -171,21 +179,17 @@ export default {
     },
     truncateContent(content, charsPerLine) {
       if (content.length > charsPerLine) {
-        return content.substring(0, charsPerLine) + "..."; // Truncate content if needed
+        return content.substring(0, charsPerLine) + "...";
       } else {
         return content;
       }
     },
     getCharLimit() {
-      if (this.notesPerLine === 5) {
-        return 32; // Max 32 characters per line if notesPerLine is 5
-      } else {
-        return 120; // Max 120 characters per line otherwise
-      }
+      return this.notesPerLine === 5 ? 32 : 120;
     },
     handleTextareaInput() {
       var box = document.getElementById("textInput");
-      const charlimit = this.getCharLimit(); // Get char limit based on number of notes per line
+      const charlimit = this.getCharLimit();
       box.onkeyup = function () {
         var lines = box.value.split("\n");
         for (var i = 0; i < lines.length; i++) {
@@ -204,58 +208,22 @@ export default {
     cancelEdit() {
       this.newTitle = this.title;
       this.newContent = this.content;
-      this.$emit("update-is-editing", false); // Close editing mode
+      this.$emit("update-is-editing", false);
       this.$emit("update-is-occupied", false);
       this.showEditIcon = false;
     },
     startEdit() {
-      console.log(this.isOccupied);
-        this.isLocalEditing = true; // Set local editing to true
+      if (!this.isOccupied) {
         this.$emit("update-is-editing", true);
         this.newTitle = this.title;
         this.newContent = this.content;
-    },
-
-    saveEdit() {
-      if (!this.isOccupied) {
-        this.loadAllNotes();
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-title", this.newTitle);
-        this.$emit("update-content", this.newContent);
-        console.log(this.newTitle, this.newContent);
-        this.$emit("update-time", Date.now());
-        this.$emit("update-is-editing", false);
-        console.log(this.isOccupied);
-        this.isLocalEditing = false;
-        this.showEditIcon = false;
-        this.$emit("update-is-occupied", false);
-      } else {
-        this.pollingInterval = setInterval(() => {
-          if (!this.isOccupied) {
-            clearInterval(this.pollingInterval);
-            this.pollingInterval = null;
-          }
-          loadNotesFromServer();
-        }, 2000);
-        alert("Cannot save while editing. Waiting for unlock...");
-      }
-    },
-
-    deleteNote() {
-      if (!this.isOccupied) {
-        this.$emit("delete-note");
-        this.$emit("update-is-editing", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Close editing mode
       }
     },
     handleClickOutside(event) {
-      // Check if click is outside the modal content
       if (!event.target.closest(".modal-content")) {
-        this.saveEdit(); // Save changes before closing
-        this.$emit("update-is-editing", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Close editing mode
-        this.isLocalEditing = false; // Reset local editing flag
-        this.showEditIcon = false;
+        this.saveEdit();
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
       }
     },
   },
