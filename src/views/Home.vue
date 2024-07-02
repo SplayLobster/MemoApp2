@@ -41,25 +41,25 @@
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
           src="../assets/grid-dark.png"
-          alt="Grid View"
+          alt="List View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 5 && isDarkTheme"
           src="../assets/list-dark.png"
-          alt="List View"
+          alt="Grid View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 1 && !isDarkTheme"
           src="../assets/grid-light.png"
-          alt="Grid View"
+          alt="List View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 5 && !isDarkTheme"
           src="../assets/list-light.png"
-          alt="List View"
+          alt="Grid View"
           class="toggle-icon"
         />
       </button>
@@ -82,16 +82,17 @@
       <!-- Draggable component for notes -->
       <draggable
         :value="filteredNotesWithAddButton"
-        class="notes-grid"
+        :class="['notes-grid', { 'single-column': notesPerLine == 1 }]"
         group="notes"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
         v-bind="$attrs"
         v-on="$listeners"
-        ghost-class="dragging-ghost"
         handle=".note-container"
         @start="handleDragStart"
+        ghostClass="dragging-ghost"
+        chosenClass="dragging-ghost"
       >
         <!-- Loop through notes and render them -->
         <div
@@ -101,7 +102,7 @@
             'note-container',
             note.isAddButton ? 'add-note-container' : '',
           ]"
-          :draggable="!note.isAddButton"
+          :draggable="!note.isAddButton ? 'true' : 'false'"
         >
           <template v-if="note && !note.isAddButton">
             <!-- Render existing notes -->
@@ -201,7 +202,6 @@ export default {
 
   async mounted() {
     // Check local storage for theme preference
-    console.log(this.notesPerLine);
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
@@ -348,6 +348,7 @@ export default {
       this.handleNoteReorder(event);
       this.saveAllNotes();
     },
+
     // Add new note function
     async addNote(type) {
       let addingNoteType = type;
@@ -525,29 +526,39 @@ export default {
   transition: background-color 0.3s ease;
 }
 
+/* Note grid and container styles */
 .notes-grid {
   display: grid;
   gap: 20px;
-  flex-grow: 1; /* Allow the grid to grow and take remaining space */
-  overflow-y: auto; /* Allow vertical scrolling if the grid overflows */
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(200px, 1fr)
-  ); /* Adjust the minmax value based on the fixed width you desire */
+  flex-grow: 1;
+  overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
+/* Adjust styles for single-column mode */
+.single-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the notes horizontally */
+  justify-content: flex-start;
+}
+
+/* Center notes and ensure they are one per line */
+.single-column .note-container {
+  width: 100%;
+  max-width: 700px; /* Define a maximum width to limit size */
+  margin-bottom: 20px; /* Space between notes */
+}
 .note-container {
-  cursor: grab; /* Default cursor for draggable notes */
+  cursor: grab;
   display: block;
   justify-content: center;
-  border-color: transparent;
   background-color: transparent;
   color: var(--note-text-color);
-  width: 100%; /* Fixed width for note */
+  width: 100%;
 }
 
 .add-note {
-  /* Styles for the add note container */
   max-width: 700px;
   width: 100%;
   height: 120px;
@@ -567,40 +578,32 @@ export default {
 
 .add-button-classic,
 .add-button-list {
-  height: 100%;
-  flex-grow: 1; /* Take all available space */
+  flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  padding: 10px; /* Adjust padding for inner content */
-  margin: 0 5px; /* Margin for spacing between buttons */
+  padding: 10px;
+  margin: 0 5px;
 }
 
 .add-button-classic:hover,
 .add-button-list:hover {
-  background-color: #565656; /* Background color on hover */
-}
-
-.add-note > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  background-color: #e0e0e0;
 }
 
 .add-divider {
-  border-left: 1px solid #ccc;
-  height: 120%; /* Adjusted height for divider */
-  margin: 0 5px; /* Margin for spacing */
+  border-left: 1px solid var(--add-divider-color);
+  height: 120%;
+  margin: 0 5px;
 }
 
+/* Remove ghost effect */
 .dragging-ghost {
-  opacity: 100%;
-  transform: scale(1.05);
+  opacity: 1;
+  transform: none;
+  border: 2px solid var(--note-text-color);
 }
 
 /* Responsive styles for smaller screens */
