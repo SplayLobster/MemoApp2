@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { loadNotes, saveNotes } from "../api/apiService.js";
+import { loadNotes, saveNotes, updateNotes } from "../api/apiService.js";
 
 export default {
   props: {
@@ -132,13 +132,7 @@ export default {
 
       try {
         // Update only the specific note
-        const { notes } = await loadNotes();
-        const noteIndex = notes.findIndex((note) => note.id === this.noteId);
-        
-        if (noteIndex !== -1) {
-          notes[noteIndex] = editedNote;
-          await saveNotes(notes, false);
-        }
+        await updateNotes(this.noteId, editedNote); // Update only the specific note
 
         this.$emit("update-title", this.newTitle);
         this.$emit("update-content", this.newContent);

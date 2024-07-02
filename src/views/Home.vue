@@ -229,7 +229,7 @@ export default {
     let operatorSurname = sessionStorage.getItem("operatorSurname");
     this.utente = `${operatorName} ${operatorSurname}`;
     try {
-      const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
+      const response = await loadNotes(); // Assuming fetchNotes returns an array with notes and occupancy status
       this.notes = response.notes;
       if (response.occupancyStatus) {
         this.isOccupiedFromServer = response.occupancyStatus;
@@ -240,67 +240,39 @@ export default {
         const lastId = Math.max(...this.notes.map((note) => note.id));
         this.nextId = lastId + 1;
       } else {
-        this.nextId = 1; // Inizia da 1 se non ci sono note
+        this.nextId = 1; // Start from 1 if no notes
       }
     } catch (error) {
-      console.error("Errore durante il caricamento delle note:", error);
+      console.error("Error loading notes:", error);
     }
-    this.startAutoSave();
-    this.startPolling();
   },
   beforeDestroy() {
-    this.stopAutoSave(); // Clear the interval when component is destroyed
-    this.stopPolling();
-    this.loadAllNotes();
-    this.isOccupiedFromServer = false;
-    this.saveAllNotes;
+    this.stopPolling(); // Clear the interval when the component is destroyed
   },
   methods: {
     async loadNotesFromServer() {
       try {
         const response = await loadNotes();
+        this.notes = response.notes;
         this.isOccupiedFromServer = response.occupancyStatus;
-        this.reassignIds();
       } catch (error) {
         console.error("Error loading notes:", error);
-      }
-    },
-    async loadAllNotes() {
-      try {
-        const response = await loadNotes(); // Supponendo che fetchNotes ritorni un array con le note e l'indicatore di occupazione
-        this.notes = response.notes;
-        if (response.occupancyStatus) {
-          this.isOccupiedFromServer = response.occupancyStatus;
-        } else {
-          this.isOccupiedFromServer = false;
-        }
-      } catch (error) {
-        console.error("Errore durante il salvataggio delle note:", error);
       }
     },
     async saveAllNotes() {
       try {
         await saveNotes(this.notes, this.isOccupiedFromServer);
       } catch (error) {
-        console.error("Errore durante il salvataggio delle note:", error);
+        console.error("Error saving notes:", error);
       }
     },
     startPolling() {
       this.pollingInterval = setInterval(() => {
         this.loadNotesFromServer();
-      }, 120); // Auto-save every 0.5 seconds
+      }, 2000); // Polling every 2 seconds
     },
-
     stopPolling() {
       clearInterval(this.pollingInterval);
-    },
-    startAutoSave() {
-      this.autoSaveInterval = setInterval(() => {
-        this.saveAllNotes();
-      }, 100); // Auto-save every 0.5 seconds
-    },
-    stopAutoSave() {
-      clearInterval(this.autoSaveInterval);
     },
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
@@ -318,28 +290,25 @@ export default {
     updateContent(index, newContent) {
       this.notes[index].content = newContent;
     },
+    updateItems(index, newItems) {
+      this.notes[index].items = newItems;
+    },
     updateTime(index, newTime) {
       this.notes[index].timestamp = newTime;
     },
     updateIsOccupied(isOccupied) {
       this.isOccupiedFromServer = isOccupied;
-      this.saveAllNotes(); // Save immediately when `isOccupied` changes
-    },
-    updateItems(index, newItems) {
-      this.notes[index].items = newItems;
     },
     deleteNote(index) {
       this.notes.splice(index, 1);
       this.reassignIds(); // Reassign IDs after deleting a note
       this.nextId = this.notes.length + 1; // Update nextId to be length + 1
-      this.saveAllNotes();
     },
     reassignIds() {
       this.notes = this.notes.map((note, index) => {
         return { ...note, id: index + 1 }; // IDs start from 1
       });
     },
-
     sortNotes(criteria) {
       switch (criteria) {
         case "Most":
@@ -355,6 +324,7 @@ export default {
           this.notes.sort((a, b) => a.timestamp - b.timestamp);
           break;
       }
+      this.saveAllNotes(); // Save after sorting
     },
     toggleNotesPerLine() {
       this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
@@ -366,7 +336,6 @@ export default {
         isEditing: idx === index ? isEditing : false,
       }));
     },
-
     handleNoteReorder(event) {
       const movedNote = this.notes.splice(event.oldIndex, 1)[0];
       this.notes.splice(event.newIndex, 0, movedNote);
@@ -382,24 +351,11 @@ export default {
       document.body.style.cursor = "default";
       event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
-      this.saveAllNotes();
-    },
-    addNoteType(type) {
-      this.addingNoteType = type;
-    },
-    setDragImage(event) {
-      // Set a transparent image as the drag image to remove ghosting
-      const dataTransfer =
-        event.dataTransfer || event.originalEvent.dataTransfer;
-      const transparentImg = new Image();
-      transparentImg.src =
-        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-      dataTransfer.setDragImage(transparentImg, 0, 0);
     },
     addNote() {
-      this.saveAllNotes();
       // Reset any previous note addition state
       this.addingNoteType = null;
+      this.saveAllNotes(); // Save after adding a note
     },
     addClassicNote() {
       const newNote = {
@@ -413,7 +369,7 @@ export default {
       };
       this.notes.push(newNote);
       this.nextId++;
-      this.addNote(); // Reset addingNoteType
+      this.addNote(); // Reset addingNoteType and save
     },
     addListNote() {
       const newNote = {
@@ -427,7 +383,16 @@ export default {
       };
       this.notes.push(newNote);
       this.nextId++;
-      this.addNote(); // Reset addingNoteType
+      this.addNote(); // Reset addingNoteType and save
+    },
+    setDragImage(event) {
+      // Set a transparent image as the drag image to remove ghosting
+      const dataTransfer =
+        event.dataTransfer || event.originalEvent.dataTransfer;
+      const transparentImg = new Image();
+      transparentImg.src =
+        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+      dataTransfer.setDragImage(transparentImg, 0, 0);
     },
   },
 };

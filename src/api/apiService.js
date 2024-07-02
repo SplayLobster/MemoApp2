@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const appCode = "note_test"; // Codice dell'applicazione ONO
-const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
+const appDataName = "test"; // Nome unico per l'appData che conterrà tutte le note
 sessionStorage.setItem("operatorName", "Mamma");
 sessionStorage.setItem("operatorSurname", "Mia");
 
@@ -19,6 +19,7 @@ const apiClient = axios.create({
 async function loadNotes() {
   try {
     const notesResponse = await getAllNotes(); // Fetch notes from API
+
     const responseArray = JSON.parse(notesResponse.data);
     if (
       responseArray &&
@@ -85,9 +86,9 @@ async function saveNotes(notes, isOccupiedFromServer) {
   }
 }
 async function updateNotes(noteId, updatedNote) {
-  console.log(noteId);
   try {
     const { notes, occupancyStatus } = await loadNotes(); // Load current notes
+
     if (!notes) {
       throw new Error("Failed to load notes");
     }
@@ -106,9 +107,12 @@ async function updateNotes(noteId, updatedNote) {
     if (noteIndex === -1) {
       throw new Error("Note not found");
     }
+
     // Update the note
     notes[noteIndex] = { ...notes[noteIndex], ...updatedNote };
+
     // Save updated notes back to server with occupancy status set to false
+
     await saveNotes(notes, false);
   } catch (error) {
     console.error("Error updating notes:", error);
