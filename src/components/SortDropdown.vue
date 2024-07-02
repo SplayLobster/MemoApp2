@@ -7,7 +7,7 @@
       @click="toggleDropdown"
       :disabled="isOccupied"
     >
-      {{ selectedCriteria }}
+      {{ printCriteria(selectedCriteria) }}
     </button>
     <ul
       class="dropdown-menu"
@@ -42,6 +42,17 @@ export default {
   },
 
   methods: {
+    printCriteria(selectedCriteria) {
+      if (selectedCriteria == "Oldest") {
+        return "Time↑";
+      } else if (selectedCriteria == "Recent") {
+        return "Time↓";
+      } else if (selectedCriteria == "Most") {
+        return "Length↑";
+      } else if (selectedCriteria == "Least") {
+        return "Length↓";
+      }
+    },
     toggleDropdown() {
       this.dropdownVisible = !this.dropdownVisible;
     },

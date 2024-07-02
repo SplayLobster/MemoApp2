@@ -16,7 +16,7 @@ const apiClient = axios.create({
 });
 
 // Load notes from the server
-async function loadNotes() {
+export async function loadNotes() {
   try {
     const notesResponse = await getAllNotes(); // Fetch notes from API
 
@@ -42,7 +42,7 @@ async function loadNotes() {
   }
 }
 // Save notes to the server
-async function saveNotes(notes, isOccupiedFromServer) {
+export async function saveNotes(notes, isOccupiedFromServer) {
   try {
     // Prepara i dati delle note
     const allNotes = notes.map((note) => {
@@ -85,7 +85,7 @@ async function saveNotes(notes, isOccupiedFromServer) {
     throw error;
   }
 }
-async function updateNotes(noteId, updatedNote) {
+export async function updateNotes(noteId, updatedNote) {
   console.log(noteId);
   try {
     const { notes, occupancyStatus } = await loadNotes(); // Load current notes
@@ -138,5 +138,3 @@ async function makeONORequest(endpoint, requestData) {
     throw error;
   }
 }
-
-export { loadNotes, saveNotes, updateNotes };

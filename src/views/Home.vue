@@ -4,7 +4,9 @@
     <!-- Header Section -->
     <div class="header">
       <!-- Title with dynamic classes based on theme -->
-      <img src="../assets/logo.png" alt="Logo" class="logo" />
+      <button type="button" class="logo-container" @click="refreshPage">
+        <img src="../assets/logo.png" alt="Logo" class="logo" />
+      </button>
       <h1 :class="{ 'title-dark': isDarkTheme, 'title-light': !isDarkTheme }">
         Memo
       </h1>
@@ -38,26 +40,26 @@
       <button class="toggle-button" @click="toggleNotesPerLine">
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
-          src="../assets/list-dark.png"
-          alt="List View"
-          class="toggle-icon"
-        />
-        <img
-          v-else-if="notesPerLine === 5 && isDarkTheme"
           src="../assets/grid-dark.png"
           alt="Grid View"
           class="toggle-icon"
         />
         <img
+          v-else-if="notesPerLine === 5 && isDarkTheme"
+          src="../assets/list-dark.png"
+          alt="List View"
+          class="toggle-icon"
+        />
+        <img
           v-else-if="notesPerLine === 1 && !isDarkTheme"
-          src="../assets/list-light.png"
+          src="../assets/grid-light.png"
           alt="Grid View"
           class="toggle-icon"
         />
         <img
           v-else-if="notesPerLine === 5 && !isDarkTheme"
-          src="../assets/grid-light.png"
-          alt="Grid View"
+          src="../assets/list-light.png"
+          alt="List View"
           class="toggle-icon"
         />
       </button>
@@ -227,15 +229,6 @@ export default {
     refreshPage() {
       window.location.reload();
     },
-    // Load notes from server function
-    async loadNotesFromServer() {
-      try {
-        const response = await loadNotes();
-        this.notes = response.notes;
-      } catch (error) {
-        console.error("Error loading notes:", error);
-      }
-    },
     // Save all notes function
     async saveAllNotes() {
       try {
@@ -282,7 +275,6 @@ export default {
     // Clear search query
     clearSearch() {
       this.searchQuery = "";
-      this.refreshPage();
     },
     // Sort notes function
     sortNotes(criteria) {
@@ -430,7 +422,16 @@ export default {
   background-color: var(--text-color);
 }
 
+.logo-container {
+  background-color: var(--background-color);
+  border: transparent;
+  height: 40px; /* Adjust size as needed */
+  width: auto; /* Maintain aspect ratio */
+}
 .logo {
+  background-color: var(--background-color);
+  border: transparent;
+  cursor: pointer;
   height: 40px; /* Adjust size as needed */
   width: auto; /* Maintain aspect ratio */
 }
@@ -466,7 +467,7 @@ export default {
 
 .search-input:focus {
   background-color: var(
-    --background-color
+    --note-background-color
   ); /* Change background color on focus */
   border-color: #2a577e; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(136, 141, 148, 0.566); /* Add box shadow for highlighting */
@@ -529,6 +530,10 @@ export default {
   gap: 20px;
   flex-grow: 1; /* Allow the grid to grow and take remaining space */
   overflow-y: auto; /* Allow vertical scrolling if the grid overflows */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(200px, 1fr)
+  ); /* Adjust the minmax value based on the fixed width you desire */
 }
 
 .note-container {
@@ -537,6 +542,7 @@ export default {
   justify-content: center;
   background-color: var(--background-color);
   color: var(--note-text-color);
+  width: 100%; /* Fixed width for note */
 }
 
 .add-note {
