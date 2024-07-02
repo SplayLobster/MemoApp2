@@ -1,4 +1,5 @@
 <template>
+   <!-- Display note content when not editing -->
   <div
     v-if="!isEditing"
     class="note"
@@ -11,6 +12,7 @@
       <h3 v-if="title">{{ title }}</h3>
       <h3 v-else class="placeholder">Title</h3>
       <ul>
+        <!-- List items -->
         <li
           v-for="(item, idx) in items"
           :key="idx"
@@ -40,8 +42,10 @@
       <i class="fa-solid fa-trash-can"></i>
     </button>
   </div>
+  <!-- Modal for editing -->
   <div v-else class="modal" @click.stop="handleClickOutside">
     <div class="modal-content">
+      <!-- Input for editing title -->
       <input
         v-model="newTitle"
         placeholder="Title"
@@ -50,18 +54,21 @@
         :maxlength="maxTitleLength"
       />
       <ul>
+        <!-- List items for editing -->
         <li v-for="(item, idx) in newItems" :key="idx">
           <div
             @mouseover="showIcons = true"
             @mouseleave="showIcons = false"
             class="item-container"
           >
+          <!-- Checkbox for each item -->
             <input
               :id="generateUniqueId('checkbox-modal', idx)"
               type="checkbox"
               v-model="newItems[idx].completed"
               class="item-checkbox"
             />
+            <!-- Input for editing item text -->
             <input
               v-model="newItems[idx].text"
               class="edit-textarea"
@@ -69,6 +76,7 @@
               :id="generateUniqueId('item-input', idx)"
               placeholder="Enter item here"
             />
+            <!-- Button to remove item -->
             <button
               v-if="showIcons"
               @click.stop="removeItem(idx)"
@@ -79,9 +87,11 @@
           </div>
         </li>
       </ul>
+      <!-- Button to add new item -->
       <button @click="addItem" class="add-btn">
         <i class="fa-solid fa-plus"></i>
       </button>
+      <!-- Edit actions buttons -->
       <div class="edit-actions">
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
@@ -137,24 +147,30 @@ export default {
     };
   },
   watch: {
+     // Update newTitle when title prop changes
     title(newVal) {
       this.newTitle = newVal;
     },
+    // Update newItems when items prop changes
     items(newVal) {
       this.newItems = newVal.map((item) => ({ ...item }));
     },
+    // Update formattedTimestamp when timestamp prop changes
     timestamp(newVal) {
       this.formattedTimestamp = this.formatTimestamp(newVal);
     },
   },
   mounted() {
+    // Format timestamp on component mount
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
     this.isEditing = false;
   },
   methods: {
+    // Refresh the page
     refreshPage() {
       window.location.reload();
     },
+    // Save edited note
     async saveEdit() {
       const editedNote = {
         id: this.noteId,
@@ -174,6 +190,7 @@ export default {
       }
       this.refreshPage();
     },
+    // Delete note
     async deleteNote() {
       try {
         const { notes } = await loadNotes();
@@ -186,6 +203,7 @@ export default {
       }
       this.refreshPage();
     },
+    // Cancel editing
     cancelEdit() {
       this.newTitle = this.title;
       this.newItems = this.items.map((item) => ({ ...item }));
@@ -193,17 +211,20 @@ export default {
       this.showEditIcon = false;
       this.refreshPage();
     },
+    // Start editing
     startEdit() {
       this.isEditing = true;
       this.newTitle = this.title;
       this.newItems = this.items.map((item) => ({ ...item }));
     },
+    // Handle click outside modal
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         this.saveEdit();
         this.isEditing = false;
       }
     },
+    // Format timestamp to readable format
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -218,6 +239,7 @@ export default {
       const seconds = date.getSeconds().toString().padStart(2, "0");
       return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
     },
+    // Truncate text to fit max characters per line
     truncatedText(text) {
       if (text.length <= this.maxCharsPerLine) {
         return text;
@@ -225,18 +247,21 @@ export default {
         return text.substring(0, this.maxCharsPerLine) + "...";
       }
     },
+    // Generate unique ID
     generateUniqueId(prefix, index = "") {
       return `${prefix}-${this._uid}-${index}`;
     },
-
+    // Toggle completion status of item
     toggleItemCompleted(index) {
       if (this.newItems[index]) {
         this.newItems[index].completed = !this.newItems[index].completed;
       }
     },
+    // Add new item
     addItem() {
       this.newItems.push({ text: "", completed: false });
     },
+    // Remove item at index
     removeItem(index) {
       this.newItems.splice(index, 1);
     },

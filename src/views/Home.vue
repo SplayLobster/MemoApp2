@@ -3,10 +3,12 @@
   <div class="home">
     <!-- Header Section -->
     <div class="header">
+      <!-- Title with dynamic classes based on theme -->
       <img src="../assets/logo.png" alt="Logo" class="logo" />
       <h1 :class="{ 'title-dark': isDarkTheme, 'title-light': !isDarkTheme }">
         Memo
       </h1>
+      <!-- Search bar with search functionality -->
       <div class="search-container">
         <i class="fas fa-search search-icon" @click="startSearch"></i>
         <input
@@ -22,6 +24,7 @@
           @click="clearSearch"
         ></i>
       </div>
+      <!-- Toggle theme button -->
       <button class="theme-toggle" @click="toggleTheme">
         <i
           :class="[
@@ -31,6 +34,7 @@
           ]"
         ></i>
       </button>
+      <!-- Toggle notes per line button -->
       <button class="toggle-button" @click="toggleNotesPerLine">
         <img
           v-if="notesPerLine === 1 && isDarkTheme"
@@ -58,7 +62,7 @@
         />
       </button>
     </div>
-
+     <!-- Divider Section -->
     <div
       class="divider"
       :class="{ 'divider-dark': isDarkTheme, 'divider-light': !isDarkTheme }"
@@ -67,11 +71,13 @@
     <!-- Controls Section -->
     <div class="controls">
       <div class="notes-control"></div>
+      <!-- Sort dropdown component -->
       <SortDropdown class="sort-dropdown" @select-sort-criteria="sortNotes" />
     </div>
 
     <!-- Note Grid Section -->
     <div class="note-grid">
+      <!-- Draggable component for notes -->
       <draggable
         :value="filteredNotesWithAddButton"
         class="notes-grid"
@@ -86,6 +92,7 @@
         handle=".note-container"
         @start="handleDragStart"
       >
+      <!-- Loop through notes and render them -->
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
           :key="note.id"
@@ -173,6 +180,7 @@ export default {
     };
   },
   computed: {
+    // Filtered notes based on search query
     filteredNotes() {
       const query = this.searchQuery.toLowerCase().trim();
       if (!query) return this.notes;
@@ -183,6 +191,7 @@ export default {
         return titleMatch || utenteMatch;
       });
     },
+    // Add button included in filtered notes
     filteredNotesWithAddButton() {
       const notesWithAddButton = [...this.filteredNotes];
       notesWithAddButton.push({ isAddButton: true }); // Add button as a separate note
@@ -195,9 +204,11 @@ export default {
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
+    // Retrieve user information from session storage
     let operatorName = sessionStorage.getItem("operatorName");
     let operatorSurname = sessionStorage.getItem("operatorSurname");
     this.utente = `${operatorName} ${operatorSurname}`;
+    // Load notes from server
     try {
       const response = await loadNotes(); // Assuming fetchNotes returns an array with notes and occupancy status
       this.notes = response.notes;
@@ -205,16 +216,18 @@ export default {
         const lastId = Math.max(...this.notes.map((note) => note.id));
         this.nextId = lastId + 1;
       } else {
-        this.nextId = 1; // Start from 1 if no notes
+        this.nextId = 1; // Start from 1 if no notes exist
       }
     } catch (error) {
       console.error("Error loading notes:", error);
     }
   },
   methods: {
+    // Refresh page function
     refreshPage() {
       window.location.reload();
     },
+    // Load notes from server function
     async loadNotesFromServer() {
       try {
         const response = await loadNotes();
@@ -223,6 +236,7 @@ export default {
         console.error("Error loading notes:", error);
       }
     },
+    // Save all notes function
     async saveAllNotes() {
       try {
         await saveNotes(this.notes);
@@ -230,22 +244,26 @@ export default {
         console.error("Error saving notes:", error);
       }
     },
+    // Toggle theme between light and dark
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
       this.applyTheme();
       localStorage.setItem("theme", this.isDarkTheme ? "dark" : "light");
     },
+    // Apply selected theme
     applyTheme() {
       const themeClass = this.isDarkTheme ? "dark-theme" : "light-theme";
       document.body.classList.toggle("dark-theme", this.isDarkTheme);
       document.documentElement.setAttribute("data-theme", themeClass);
     },
+    // Start search function
     startSearch() {
       if (this.searchQuery.trim() !== "") {
         this.search();
       }
       this.refreshPage();
     },
+    // Perform search based on query
     search() {
       const query = this.searchQuery.toLowerCase().trim();
       if (!query) return this.notes;
@@ -256,10 +274,12 @@ export default {
         return titleMatch || utenteMatch;
       });
     },
+    // Clear search query
     clearSearch() {
       this.searchQuery = "";
       this.refreshPage();
     },
+    // Sort notes function
     sortNotes(criteria) {
       switch (criteria) {
         case "Most":
@@ -303,6 +323,7 @@ export default {
       const movedNote = this.notes.splice(event.oldIndex, 1)[0];
       this.notes.splice(event.newIndex, 0, movedNote);
     },
+    // Drag start function
     handleDragStart(event) {
       // Ignore drag if the item is an add button
       if (
@@ -317,6 +338,7 @@ export default {
       document.body.style.cursor = "grabbing";
       event.item.style.cursor = "grabbing";
     },
+    // Drag end function
     handleDragEnd(event) {
       // Ignore drag if the item is an add button
       if (
@@ -333,11 +355,13 @@ export default {
       this.handleNoteReorder(event);
       this.saveAllNotes();
     },
+    // Add new note function
     addNote() {
       // Reset any previous note addition state
       this.addingNoteType = null;
       this.saveAllNotes(); // Save after adding a note
     },
+    // Add classic note function
     addClassicNote() {
       const newNote = {
         title: "",
@@ -351,6 +375,7 @@ export default {
       this.nextId++;
       this.addNote(); // Reset addingNoteType and save
     },
+    // Add list note function
     addListNote() {
       const newNote = {
         title: "",

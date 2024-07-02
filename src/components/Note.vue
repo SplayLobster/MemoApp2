@@ -1,5 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
+   <!-- Note container -->
   <div
     v-if="!isEditing"
     class="note"
@@ -7,16 +8,18 @@
     @mouseover="showEditIcon = true"
     @mouseleave="showEditIcon = false"
   >
-    <!-- Note Content -->
+    <!-- Display Note Content when not editing -->
     <div v-if="!isEditing" class="note-content">
+      <!-- Display title if exists, otherwise show placeholder -->
       <h3 v-if="title">{{ title }}</h3>
+      <!-- Display truncated content or placeholder if empty -->
       <h3 v-else class="placeholder">Title</h3>
       <pre v-if="content">{{ truncateContent(content, getCharLimit) }}</pre>
       <pre v-else class="placeholder">Write a note</pre>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
     </div>
-    <!-- Delete Button -->
+    <!-- Display Delete Button when hovering and not editing -->
     <button
       v-if="showEditIcon && !isEditing"
       class="delete-btn"
@@ -28,6 +31,7 @@
   </div>
   <div v-else class="modal" @click.stop="handleClickOutside">
     <div class="modal-content">
+      <!-- Input for editing title -->
       <input
         v-model="newTitle"
         placeholder="Title"
@@ -35,6 +39,7 @@
         id="titleInput"
         :maxlength="maxTitleLength"
       />
+      <!-- Textarea for editing content -->
       <textarea
         v-model="newContent"
         rows="4"
@@ -43,6 +48,7 @@
         placeholder="Enter content here"
         @input="handleTextareaInput"
       ></textarea>
+       <!-- Edit actions: Delete, Cancel, Save buttons -->
       <div class="edit-actions">
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
@@ -65,28 +71,34 @@ export default {
       required: true,
     },
     title: {
+      // Title of the note
       type: String,
       required: true,
     },
     content: {
+      // Content of the note
       type: String,
       required: true,
     },
     utente: {
+      // User who created the note
       type: String,
       required: true,
     },
     timestamp: {
+      // Timestamp when note was created
       type: [String, Number],
       required: true,
     },
     notesPerLine: {
+      // Number of notes per line in the grid
       type: Number,
       required: true,
     },
   },
   data() {
     return {
+      // State variables for editing
       newTitle: this.title,
       newContent: this.content,
       isEditing: false,
@@ -97,6 +109,7 @@ export default {
     };
   },
   watch: {
+    // Watch for changes in title, content, and timestamp
     title(newVal) {
       this.newTitle = newVal;
     },
@@ -108,6 +121,7 @@ export default {
     },
   },
   mounted() {
+      // Initialize formatted timestamp on component mount
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
     this.isEditing = false;
   },
@@ -125,7 +139,7 @@ export default {
       };
 
       try {
-        // Update only the specific note
+        // Update the note using API service
         await updateNotes(this.noteId, editedNote); // Update only the specific note
         this.showEditIcon = false;
       } catch (error) {
@@ -134,9 +148,10 @@ export default {
       this.isEditing = false;
       this.refreshPage();
     },
+    // Delete the note
     async deleteNote() {
       try {
-        // Delete only the specific note
+        // Load all notes, filter out the deleted note, and save
         const { notes } = await loadNotes();
         const updatedNotes = notes.filter((note) => note.id !== this.noteId);
         await saveNotes(updatedNotes, false);
@@ -157,12 +172,14 @@ export default {
       this.newTitle = this.title;
       this.newContent = this.content;
     },
+    // Handle click outside the modal to save edits
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         this.saveEdit();
         this.isEditing = false;
       }
     },
+        // Format timestamp into a readable string
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -177,6 +194,7 @@ export default {
       const seconds = date.getSeconds().toString();
       return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
     },
+    // Truncate content to fit within specified character limit per line
     truncateContent(content, charsPerLine) {
       if (content.length > charsPerLine) {
         return content.substring(0, charsPerLine) + "...";
@@ -184,9 +202,11 @@ export default {
         return content;
       }
     },
+    // Get character limit based on number of notes per line
     getCharLimit() {
       return this.notesPerLine === 5 ? 32 : 120;
     },
+     // Handle textarea input to format text within specified limits
     handleTextareaInput() {
       var box = document.getElementById("textInput");
       const charlimit = this.getCharLimit();
