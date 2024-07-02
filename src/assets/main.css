@@ -94,12 +94,8 @@ body {
   color: var(--text-color);
   font-family: Arial, sans-serif; /* Ensure a consistent font across the app */
 }
-.dragging {
-  opacity: 1; /* Ensure full opacity when dragging */
-  transition: none; /* Disable any transition effect */
-  z-index: 1000; /* Ensure it's above other elements */
-}
 
 .dragging-ghost {
+  opacity: 100%; /* Ensure full opacity when dragging */
   display: none; /* Hide the ghost element during drag */
 }

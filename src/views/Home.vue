@@ -90,7 +90,6 @@
         v-bind="$attrs"
         v-on="$listeners"
         ghost-class="dragging-ghost"
-        chosen-class="dragging-chosen"
         handle=".note-container"
         @start="handleDragStart"
       >
@@ -380,10 +379,11 @@ export default {
 
       try {
         // Save the new note using updateNotes function
+        //await saveNotes(this.notes);
         await updateNotes(newNote.id, newNote);
 
         // Refresh the page after saving
-        this.refreshPage();
+        //this.refreshPage();
       } catch (error) {
         console.error("Error saving the new note:", error);
       }
@@ -538,9 +538,10 @@ export default {
 
 .note-container {
   cursor: grab; /* Default cursor for draggable notes */
-  display: flex;
+  display: block;
   justify-content: center;
-  background-color: var(--background-color);
+  border-color: transparent;
+  background-color: transparent;
   color: var(--note-text-color);
   width: 100%; /* Fixed width for note */
 }
@@ -598,57 +599,21 @@ export default {
 }
 
 .dragging-ghost {
-  opacity: 0.6;
+  opacity: 100%;
   transform: scale(1.05);
 }
 
-.dragging-chosen {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.564);
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-
-.fade-enter, 
-.fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
-}
-@media (max-width: 600px) {
-  .notes-grid {
-    grid-template-columns: repeat(1, 1fr);
-  }
-}
-
-@media (min-width: 600px) {
-  .notes-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 900px) {
-  .notes-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1200px) {
-  .notes-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+/* Responsive styles for smaller screens */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
-    position: relative; /* Ensure absolute positioning is still relative to header */
   }
 
   .theme-toggle {
-    position: absolute; /* Keep it absolute */
-    right: 10px; /* A small margin from the edge */
-    top: 10px; /* Adjust vertical position on small screens */
-    transform: none; /* Reset transform */
+    position: static;
+    transform: none;
+    margin-left: auto;
   }
 }
 </style>

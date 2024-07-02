@@ -312,7 +312,7 @@ export default {
   transition: box-shadow 0.3s ease;
   width: 100%; /* Note takes full width of its container */
   max-width: 700px;
-  display: flex;
+  display: block;
   align-items: center;
   justify-content: center;
   position: relative; /* Ensure position relative for absolute icon */
