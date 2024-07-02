@@ -10,7 +10,6 @@
       <div class="search-container">
         <i class="fas fa-search search-icon" @click="startSearch"></i>
         <input
-          :disabled="isOccupiedFromServer"
           type="text"
           v-model="searchQuery"
           placeholder="Search..."
@@ -23,11 +22,7 @@
           @click="clearSearch"
         ></i>
       </div>
-      <button
-        class="theme-toggle"
-        @click="toggleTheme"
-        :disabled="isOccupiedFromServer"
-      >
+      <button class="theme-toggle" @click="toggleTheme">
         <i
           :class="[
             'fas',
@@ -72,11 +67,7 @@
     <!-- Controls Section -->
     <div class="controls">
       <div class="notes-control"></div>
-      <SortDropdown
-        :isOccupied="isOccupiedFromServer"
-        class="sort-dropdown"
-        @select-sort-criteria="sortNotes"
-      />
+      <SortDropdown class="sort-dropdown" @select-sort-criteria="sortNotes" />
     </div>
 
     <!-- Note Grid Section -->
@@ -85,7 +76,6 @@
         :value="filteredNotesWithAddButton"
         class="notes-grid"
         group="notes"
-        :disabled="isAnyNoteEditing || isOccupiedFromServer"
         :item-key="(note) => note.id"
         :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
@@ -113,16 +103,10 @@
               :content="note.content"
               :timestamp="note.timestamp"
               :utente="note.utente"
-              :isEditing="note.isEditing"
-              :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
               :note-id="note.id"
-              @update-title="updateTitle(index, $event)"
-              @update-content="updateContent(index, $event)"
-              @update-time="updateTime(index, $event)"
-              @delete-note="deleteNote(index)"
-              @update-is-occupied="updateIsOccupied($event)"
-              @update-is-editing="updateIsEditing(index, $event)"
+              :index="index"
+              @update-note="updateNote(index, $event.action, $event.data)"
             />
             <ListNote
               v-else-if="note.type === 'list'"
@@ -130,28 +114,15 @@
               :items="note.items"
               :timestamp="note.timestamp"
               :utente="note.utente"
-              :isEditing="note.isEditing"
-              :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
               :note-id="note.id"
-              @update-title="updateTitle(index, $event)"
-              @update-items="updateItems(index, $event)"
-              @update-time="updateTime(index, $event)"
-              @delete-note="deleteNote(index)"
-              @update-is-occupied="updateIsOccupied($event)"
-              @update-is-editing="updateIsEditing(index, $event)"
+              @update-note="updateNote(index, $event.action, $event.data)"
             />
           </template>
-          <template
-            v-else-if="note && note.isAddButton && !isOccupiedFromServer"
-          >
+          <template v-else-if="note && note.isAddButton">
             <!-- Render add button -->
             <div v-if="addingNoteType === null" class="note add-note">
-              <div
-                @click="addClassicNote"
-                :disabled="isOccupiedFromServer"
-                class="add-button-classic"
-              >
+              <div @click="addClassicNote" class="add-button-classic">
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add Classic Note</span>
@@ -161,11 +132,7 @@
               <div class="add-divider"></div>
 
               <!-- Second Add Button -->
-              <div
-                @click="addListNote"
-                :disabled="isOccupiedFromServer"
-                class="add-button-list"
-              >
+              <div @click="addListNote" class="add-button-list">
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add List Note</span>
@@ -199,18 +166,13 @@ export default {
       notes: [],
       nextId: 1,
       notesPerLine: 5,
-      searchQuery: "",
-      isDarkTheme: localStorage.getItem("theme") === "dark",
+      isDarkTheme: localStorage.getItem("theme") === "dark", // Default to dark if no criteria is set
       addingNoteType: null,
-      isOccupiedFromServer: null,
-      pollingInterval: null,
+      searchQuery: "",
       utente: "",
     };
   },
   computed: {
-    isAnyNoteEditing() {
-      return this.notes.some((note) => note.isEditing);
-    },
     filteredNotes() {
       const query = this.searchQuery.toLowerCase().trim();
       if (!query) return this.notes;
@@ -233,18 +195,12 @@ export default {
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
-    this.isOccupiedFromServer = false;
     let operatorName = sessionStorage.getItem("operatorName");
     let operatorSurname = sessionStorage.getItem("operatorSurname");
     this.utente = `${operatorName} ${operatorSurname}`;
     try {
       const response = await loadNotes(); // Assuming fetchNotes returns an array with notes and occupancy status
       this.notes = response.notes;
-      if (response.occupancyStatus) {
-        this.isOccupiedFromServer = response.occupancyStatus;
-      } else {
-        this.isOccupiedFromServer = false;
-      }
       if (this.notes.length > 0) {
         const lastId = Math.max(...this.notes.map((note) => note.id));
         this.nextId = lastId + 1;
@@ -255,9 +211,6 @@ export default {
       console.error("Error loading notes:", error);
     }
   },
-  beforeDestroy() {
-    this.stopPolling(); // Clear the interval when the component is destroyed
-  },
   methods: {
     refreshPage() {
       window.location.reload();
@@ -266,25 +219,16 @@ export default {
       try {
         const response = await loadNotes();
         this.notes = response.notes;
-        this.isOccupiedFromServer = response.occupancyStatus;
       } catch (error) {
         console.error("Error loading notes:", error);
       }
     },
     async saveAllNotes() {
       try {
-        await saveNotes(this.notes, this.isOccupiedFromServer);
+        await saveNotes(this.notes);
       } catch (error) {
         console.error("Error saving notes:", error);
       }
-    },
-    startPolling() {
-      this.pollingInterval = setInterval(() => {
-        this.loadNotesFromServer();
-      }, 2000); // Polling every 2 seconds
-    },
-    stopPolling() {
-      clearInterval(this.pollingInterval);
     },
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
@@ -315,31 +259,6 @@ export default {
     clearSearch() {
       this.searchQuery = "";
       this.refreshPage();
-    },
-    updateTitle(index, newTitle) {
-      this.notes[index].title = newTitle;
-    },
-    updateContent(index, newContent) {
-      this.notes[index].content = newContent;
-    },
-    updateItems(index, newItems) {
-      this.notes[index].items = newItems;
-    },
-    updateTime(index, newTime) {
-      this.notes[index].timestamp = newTime;
-    },
-    updateIsOccupied(isOccupied) {
-      this.isOccupiedFromServer = isOccupied;
-    },
-    deleteNote(index) {
-      this.notes.splice(index, 1);
-      this.reassignIds(); // Reassign IDs after deleting a note
-      this.nextId = this.notes.length + 1; // Update nextId to be length + 1
-    },
-    reassignIds() {
-      this.notes = this.notes.map((note, index) => {
-        return { ...note, id: index + 1 }; // IDs start from 1
-      });
     },
     sortNotes(criteria) {
       switch (criteria) {
@@ -379,13 +298,6 @@ export default {
 
     toggleNotesPerLine() {
       this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
-    },
-    updateIsEditing(index, isEditing) {
-      // Iterate through notes to update isEditing state
-      this.notes = this.notes.map((note, idx) => ({
-        ...note,
-        isEditing: idx === index ? isEditing : false,
-      }));
     },
     handleNoteReorder(event) {
       const movedNote = this.notes.splice(event.oldIndex, 1)[0];
@@ -433,7 +345,6 @@ export default {
         id: this.nextId,
         timestamp: Date.now(),
         utente: this.utente,
-        isEditing: false,
         type: "classic", // Marking it as a classic note
       };
       this.notes.push(newNote);
@@ -447,7 +358,6 @@ export default {
         id: this.nextId,
         timestamp: Date.now(),
         utente: this.utente,
-        isEditing: false,
         type: "list", // Marking it as a list note
       };
       this.notes.push(newNote);

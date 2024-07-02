@@ -19,7 +19,6 @@
     <!-- Delete Button -->
     <button
       v-if="showEditIcon && !isEditing"
-      :disabled="isOccupied"
       class="delete-btn"
       @click.stop="deleteNote"
     >
@@ -81,13 +80,6 @@ export default {
       type: [String, Number],
       required: true,
     },
-    isOccupied: {
-      type: Boolean,
-    },
-    isEditing: {
-      type: Boolean,
-      default: false,
-    },
     notesPerLine: {
       type: Number,
       required: true,
@@ -97,8 +89,9 @@ export default {
     return {
       newTitle: this.title,
       newContent: this.content,
-      formattedTimestamp: "",
+      isEditing: false,
       showEditIcon: false,
+      formattedTimestamp: "",
       maxTitleLength: 25,
       maxCharsPerLine: 32,
     };
@@ -113,12 +106,10 @@ export default {
     timestamp(newVal) {
       this.formattedTimestamp = this.formatTimestamp(newVal);
     },
-    isEditing() {
-      this.isEditing === this.isEditing;
-    },
   },
   mounted() {
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
+    this.isEditing = false;
   },
   methods: {
     refreshPage() {
@@ -136,16 +127,11 @@ export default {
       try {
         // Update only the specific note
         await updateNotes(this.noteId, editedNote); // Update only the specific note
-
-        this.$emit("update-title", this.newTitle);
-        this.$emit("update-content", this.newContent);
-        this.$emit("update-time", Date.now());
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
         this.showEditIcon = false;
       } catch (error) {
         console.error("Failed to save note:", error);
       }
+      this.isEditing = false;
       this.refreshPage();
     },
     async deleteNote() {
@@ -154,13 +140,28 @@ export default {
         const { notes } = await loadNotes();
         const updatedNotes = notes.filter((note) => note.id !== this.noteId);
         await saveNotes(updatedNotes, false);
-        this.$emit("delete-note");
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
+        this.isEditing = false;
       } catch (error) {
         console.error("Failed to delete note:", error);
       }
       this.refreshPage();
+    },
+    cancelEdit() {
+      this.newTitle = this.title;
+      this.newContent = this.content;
+      this.showEditIcon = false;
+      this.refreshPage();
+    },
+    startEdit() {
+      this.isEditing = true;
+      this.newTitle = this.title;
+      this.newContent = this.content;
+    },
+    handleClickOutside(event) {
+      if (!event.target.closest(".modal-content")) {
+        this.saveEdit();
+        this.isEditing = false;
+      }
     },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
@@ -203,28 +204,6 @@ export default {
         }
         box.value = lines.slice(0, 10).join("\n");
       };
-    },
-    cancelEdit() {
-      this.newTitle = this.title;
-      this.newContent = this.content;
-      this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false);
-      this.showEditIcon = false;
-      this.refreshPage();
-    },
-    startEdit() {
-      if (!this.isOccupied) {
-        this.$emit("update-is-editing", true);
-        this.newTitle = this.title;
-        this.newContent = this.content;
-      }
-    },
-    handleClickOutside(event) {
-      if (!event.target.closest(".modal-content")) {
-        this.saveEdit();
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
-      }
     },
   },
 };

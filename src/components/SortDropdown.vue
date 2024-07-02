@@ -37,8 +37,7 @@ export default {
   data() {
     return {
       dropdownVisible: false,
-      selectedCriteria: "Oldest", // Default to 'Oldest'
-      selectedTypeCriteria: "All", // Default to 'All'
+      selectedCriteria: localStorage.getItem("sortCriteria") || "Oldest", // Default to Recent if no criteria is set'
     };
   },
 
@@ -57,30 +56,15 @@ export default {
       this.selectedCriteria =
         this.selectedCriteria === "Recent" ? "Oldest" : "Recent";
       this.dropdownVisible = false;
+      localStorage.setItem("sortCriteria", this.selectedCriteria); // Store selected criteria in localStorage
       this.$emit("select-sort-criteria", this.selectedCriteria);
     },
     toggleSortCriteriaLength() {
       this.selectedCriteria =
         this.selectedCriteria === "Most" ? "Least" : "Most";
       this.dropdownVisible = false;
+      localStorage.setItem("sortCriteria", this.selectedCriteria); // Store selected criteria in localStorage
       this.$emit("select-sort-criteria", this.selectedCriteria);
-    },
-    toggleSortCriteriaType(type) {
-      if (type === this.selectedTypeCriteria) {
-        return; // Exit if clicked on the already selected type
-      }
-
-      if (type === "All") {
-        this.selectedTypeCriteria = "All";
-      } else if (type === "Classic") {
-        this.selectedTypeCriteria = "Classic";
-      } else if (type === "List") {
-        this.selectedTypeCriteria = "List";
-      }
-
-      this.dropdownVisible = false;
-      console.log(this.selectedCriteria);
-      this.$emit("select-type-criteria", this.selectedTypeCriteria);
     },
   },
   mounted() {

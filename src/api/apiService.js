@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const appCode = "note_test"; // Codice dell'applicazione ONO
-const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
+const appDataName = "test"; // Nome unico per l'appData che conterrà tutte le note
 sessionStorage.setItem("operatorName", "Mamma");
 sessionStorage.setItem("operatorSurname", "Mia");
 
@@ -88,7 +88,6 @@ async function saveNotes(notes, isOccupiedFromServer) {
 async function updateNotes(noteId, updatedNote) {
   try {
     const { notes, occupancyStatus } = await loadNotes(); // Load current notes
-
     if (!notes) {
       throw new Error("Failed to load notes");
     }

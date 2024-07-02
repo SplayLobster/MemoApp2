@@ -119,13 +119,6 @@ export default {
       type: [String, Number],
       required: true,
     },
-    isOccupied: {
-      type: Boolean,
-    },
-    isEditing: {
-      type: Boolean,
-      default: false,
-    },
     notesPerLine: {
       type: Number,
       required: true,
@@ -135,16 +128,13 @@ export default {
     return {
       newTitle: this.title,
       newItems: this.items.map((item) => ({ ...item })),
+      isEditing: false,
       showEditIcon: false,
       showIcons: false,
+      formattedTimestamp: "",
       maxTitleLength: 25,
       maxCharsPerLine: 28, // Default char limit per line
     };
-  },
-  computed: {
-    formattedTimestamp() {
-      return this.formatTimestamp(this.timestamp);
-    },
   },
   watch: {
     title(newVal) {
@@ -153,14 +143,13 @@ export default {
     items(newVal) {
       this.newItems = newVal.map((item) => ({ ...item }));
     },
+    timestamp(newVal) {
+      this.formattedTimestamp = this.formatTimestamp(newVal);
+    },
   },
   mounted() {
-    this.$emit("update-is-occupied", false); // Close editing mode
-    this.$emit("update-is-editing", false); // Close editing mode
-  },
-  beforeDestroy() {
-    this.$emit("update-is-editing", false); // Close editing mode
-    this.$emit("update-is-occupied", false); // Close editing mode
+    this.formattedTimestamp = this.formatTimestamp(this.timestamp);
+    this.isEditing = false;
   },
   methods: {
     refreshPage() {
@@ -178,11 +167,7 @@ export default {
       try {
         await updateNotes(this.noteId, editedNote); // Update the specific note
 
-        this.$emit("update-title", this.newTitle);
-        this.$emit("update-items", this.newItems);
-        this.$emit("update-time", Date.now());
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
+        this.isEditing = false;
         this.showEditIcon = false;
       } catch (error) {
         console.error("Failed to save note:", error);
@@ -194,13 +179,30 @@ export default {
         const { notes } = await loadNotes();
         const updatedNotes = notes.filter((note) => note.id !== this.noteId);
         await saveNotes(updatedNotes, false);
-        this.$emit("delete-note");
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
+        this.isEditing = false;
+        this.showEditIcon = false;
       } catch (error) {
         console.error("Failed to delete note:", error);
       }
       this.refreshPage();
+    },
+    cancelEdit() {
+      this.newTitle = this.title;
+      this.newItems = this.items.map((item) => ({ ...item }));
+      this.isEditing = false;
+      this.showEditIcon = false;
+      this.refreshPage();
+    },
+    startEdit() {
+      this.isEditing = true;
+      this.newTitle = this.title;
+      this.newItems = this.items.map((item) => ({ ...item }));
+    },
+    handleClickOutside(event) {
+      if (!event.target.closest(".modal-content")) {
+        this.saveEdit();
+        this.isEditing = false;
+      }
     },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
@@ -226,28 +228,7 @@ export default {
     generateUniqueId(prefix, index = "") {
       return `${prefix}-${this._uid}-${index}`;
     },
-    cancelEdit() {
-      this.newTitle = this.title;
-      this.newItems = this.items.map((item) => ({ ...item }));
-      this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false);
-      this.showEditIcon = false;
-      this.refreshPage();
-    },
-    startEdit() {
-      if (!this.isOccupied) {
-        this.$emit("update-is-editing", true);
-        this.newTitle = this.title;
-        this.newItems = this.items.map((item) => ({ ...item }));
-      }
-    },
-    handleClickOutside(event) {
-      if (!event.target.closest(".modal-content")) {
-        this.saveEdit();
-        this.$emit("update-is-editing", false);
-        this.$emit("update-is-occupied", false);
-      }
-    },
+
     toggleItemCompleted(index) {
       if (this.newItems[index]) {
         this.newItems[index].completed = !this.newItems[index].completed;
