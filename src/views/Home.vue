@@ -128,8 +128,8 @@
           </template>
           <template v-else-if="note && note.isAddButton">
             <!-- Render add button -->
-            <div v-if="addingNoteType === null" class="note add-note">
-              <div @click="addClassicNote" class="add-button-classic">
+            <div class="note add-note">
+              <div @click="addNote('Classic')" class="add-button-classic">
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add Classic Note</span>
@@ -139,7 +139,7 @@
               <div class="add-divider"></div>
 
               <!-- Second Add Button -->
-              <div @click="addListNote" class="add-button-list">
+              <div @click="addNote('List')" class="add-button-list">
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
                 <span>Add List Note</span>
@@ -157,7 +157,7 @@ import Note from "../components/Note.vue";
 import ListNote from "../components/ListNote.vue";
 import SortDropdown from "../components/SortDropdown.vue";
 import draggable from "vuedraggable";
-import { loadNotes, saveNotes } from "@/api/apiService";
+import { loadNotes, saveNotes, updateNotes } from "@/api/apiService";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -172,11 +172,10 @@ export default {
     return {
       notes: [],
       nextId: 1,
-      notesPerLine: 5,
-      isDarkTheme: localStorage.getItem("theme") === "dark", // Default to dark if no criteria is set
-      addingNoteType: null,
       searchQuery: "",
       utente: "",
+      notesPerLine: parseInt(localStorage.getItem("PerLine")) || 5, // Default to 5 notes if no criteria is set
+      isDarkTheme: localStorage.getItem("theme") === "dark", // Default to dark if no criteria is set
     };
   },
   computed: {
@@ -201,6 +200,7 @@ export default {
 
   async mounted() {
     // Check local storage for theme preference
+    console.log(this.notesPerLine);
     const savedTheme = localStorage.getItem("theme");
     this.isDarkTheme = savedTheme === "dark";
     this.applyTheme();
@@ -243,6 +243,11 @@ export default {
       } catch (error) {
         console.error("Error saving notes:", error);
       }
+    },
+    // Toggle theme between 5 and 1 note per line
+    toggleNotesPerLine() {
+      this.notesPerLine = this.notesPerLine === 5 ? 1 : 5;
+      localStorage.setItem("PerLine", this.notesPerLine);
     },
     // Toggle theme between light and dark
     toggleTheme() {
@@ -316,9 +321,6 @@ export default {
       this.saveAllNotes(); // Save after sorting
     },
 
-    toggleNotesPerLine() {
-      this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
-    },
     handleNoteReorder(event) {
       const movedNote = this.notes.splice(event.oldIndex, 1)[0];
       this.notes.splice(event.newIndex, 0, movedNote);
@@ -356,38 +358,43 @@ export default {
       this.saveAllNotes();
     },
     // Add new note function
-    addNote() {
-      // Reset any previous note addition state
-      this.addingNoteType = null;
-      this.saveAllNotes(); // Save after adding a note
-    },
-    // Add classic note function
-    addClassicNote() {
-      const newNote = {
-        title: "",
-        content: "",
-        id: this.nextId,
-        timestamp: Date.now(),
-        utente: this.utente,
-        type: "classic", // Marking it as a classic note
-      };
-      this.notes.push(newNote);
-      this.nextId++;
-      this.addNote(); // Reset addingNoteType and save
-    },
-    // Add list note function
-    addListNote() {
-      const newNote = {
-        title: "",
-        items: [],
-        id: this.nextId,
-        timestamp: Date.now(),
-        utente: this.utente,
-        type: "list", // Marking it as a list note
-      };
-      this.notes.push(newNote);
-      this.nextId++;
-      this.addNote(); // Reset addingNoteType and save
+    async addNote(type) {
+      let addingNoteType = type;
+      let newNote;
+
+      // Differenting the type of notes
+      if (addingNoteType === "Classic") {
+        newNote = {
+          title: "",
+          content: "",
+          id: this.nextId,
+          timestamp: Date.now(),
+          utente: this.utente,
+          type: "classic", // Marking it as a classic note
+        };
+      } else if (addingNoteType === "List") {
+        newNote = {
+          title: "",
+          items: [],
+          id: this.nextId,
+          timestamp: Date.now(),
+          utente: this.utente,
+          type: "list", // Marking it as a list note
+        };
+      }
+
+      this.nextId++; // Increment the next ID
+      this.notes.push(newNote); // Add the note to the list
+
+      try {
+        // Save the new note using updateNotes function
+        await updateNotes(newNote.id, newNote);
+
+        // Refresh the page after saving
+        this.refreshPage();
+      } catch (error) {
+        console.error("Error saving the new note:", error);
+      }
     },
   },
 };

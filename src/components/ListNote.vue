@@ -57,8 +57,8 @@
         <!-- List items for editing -->
         <li v-for="(item, idx) in newItems" :key="idx">
           <div
-            @mouseover="showIcons = true"
-            @mouseleave="showIcons = false"
+            @mouseover="hoverIndex = idx"
+            @mouseleave="hoverIndex = null"
             class="item-container"
           >
             <!-- Checkbox for each item -->
@@ -78,7 +78,7 @@
             />
             <!-- Button to remove item -->
             <button
-              v-if="showIcons"
+              v-if="hoverIndex === idx"
               @click.stop="removeItem(idx)"
               class="remove-btn"
             >
@@ -141,9 +141,10 @@ export default {
       isEditing: false,
       showEditIcon: false,
       showIcons: false,
-      formattedTimestamp: "",
-      maxTitleLength: 25,
+      maxTitleLength: 25, // Default char limit per title
       maxCharsPerLine: 28, // Default char limit per line
+      formattedTimestamp: "",
+      hoverIndex: null, // Add this line to track the index of the hovered item
     };
   },
   watch: {

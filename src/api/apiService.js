@@ -86,6 +86,7 @@ async function saveNotes(notes, isOccupiedFromServer) {
   }
 }
 async function updateNotes(noteId, updatedNote) {
+  console.log(noteId);
   try {
     const { notes, occupancyStatus } = await loadNotes(); // Load current notes
     if (!notes) {
@@ -102,9 +103,9 @@ async function updateNotes(noteId, updatedNote) {
     // Find index of the note to update
 
     const noteIndex = notes.findIndex((note) => note.id === noteId);
-
+    console.log(noteIndex);
     if (noteIndex === -1) {
-      throw new Error("Note not found");
+      notes.push(updatedNote);
     }
 
     // Update the note

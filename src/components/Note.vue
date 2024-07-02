@@ -103,9 +103,9 @@ export default {
       newContent: this.content,
       isEditing: false,
       showEditIcon: false,
+      maxTitleLength: 25, // Default char limit per title
+      maxCharsPerLine: 32, // Default char limit per line
       formattedTimestamp: "",
-      maxTitleLength: 25,
-      maxCharsPerLine: 32,
     };
   },
   watch: {
