@@ -8,15 +8,20 @@
         Memo
       </h1>
       <div class="search-container">
-        <i class="fas fa-search search-icon"></i>
+        <i class="fas fa-search search-icon" @click="startSearch"></i>
         <input
           :disabled="isOccupiedFromServer"
           type="text"
           v-model="searchQuery"
-          placeholder="Search"
+          placeholder="Search..."
           class="search-input"
           id="searchInput"
         />
+        <i
+          v-if="searchQuery"
+          class="fas fa-times-circle clear-icon"
+          @click="clearSearch"
+        ></i>
       </div>
       <button
         class="theme-toggle"
@@ -254,6 +259,9 @@ export default {
     this.stopPolling(); // Clear the interval when the component is destroyed
   },
   methods: {
+    refreshPage() {
+      window.location.reload();
+    },
     async loadNotesFromServer() {
       try {
         const response = await loadNotes();
@@ -287,6 +295,26 @@ export default {
       const themeClass = this.isDarkTheme ? "dark-theme" : "light-theme";
       document.body.classList.toggle("dark-theme", this.isDarkTheme);
       document.documentElement.setAttribute("data-theme", themeClass);
+    },
+    startSearch() {
+      if (this.searchQuery.trim() !== "") {
+        this.search();
+      }
+      this.refreshPage();
+    },
+    search() {
+      const query = this.searchQuery.toLowerCase().trim();
+      if (!query) return this.notes;
+
+      return this.notes.filter((note) => {
+        const titleMatch = note.title.toLowerCase().includes(query);
+        const utenteMatch = note.utente.toLowerCase().includes(query);
+        return titleMatch || utenteMatch;
+      });
+    },
+    clearSearch() {
+      this.searchQuery = "";
+      this.refreshPage();
     },
     updateTitle(index, newTitle) {
       this.notes[index].title = newTitle;
@@ -473,6 +501,7 @@ export default {
 }
 
 .search-icon {
+  cursor: pointer;
   position: absolute;
   left: 10px;
   font-size: 14px;
@@ -483,9 +512,9 @@ export default {
   font-size: 16px;
   width: 450px;
   padding: 10px 18px 10px 40px; /* Added left padding for the icon */
-  background-color: var(--note-background-color);
+  background-color: var(--search-bar-background-color);
   border: 2px solid;
-  border-color: var(--text-color);
+  border-color: var(--note-background-color);
   border-radius: 10px;
   color: var(--text-color);
   transition: background-color 0.3s ease, border-color 0.3s ease,
@@ -497,10 +526,16 @@ export default {
   background-color: var(
     --background-color
   ); /* Change background color on focus */
-  border-color: var(--text-color); /* Change border color on focus */
+  border-color: #2a577e; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(136, 141, 148, 0.566); /* Add box shadow for highlighting */
 }
-
+.clear-icon {
+  position: absolute;
+  right: 1rem;
+  cursor: pointer;
+  color: #565656;
+  background-color: transparent;
+}
 .controls {
   display: flex;
   align-items: center;
@@ -558,7 +593,7 @@ export default {
   cursor: grab; /* Default cursor for draggable notes */
   display: flex;
   justify-content: center;
-  background-color: var(--note-background-color);
+  background-color: var(--background-color);
   color: var(--note-text-color);
 }
 

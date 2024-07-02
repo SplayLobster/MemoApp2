@@ -299,6 +299,7 @@ export default {
 }
 
 .note {
+  background-color: var(--note-background-color);
   position: relative; /* Aggiungiamo posizione relativa per gestire posizione del modal */
   z-index: 1; /* Impostiamo z-index per assicurare che le note siano sopra il modal */
   display: flex;

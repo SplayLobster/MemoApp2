@@ -371,6 +371,7 @@ input[type="checkbox"] {
   opacity: 0.5; /* Reduce opacity of text for completed items */
 }
 .note {
+  background-color: var(--note-background-color);
   position: relative;
   z-index: 1;
   display: flex;
