@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const appCode = "note_test"; // Codice dell'applicazione ONO
-const appDataName = "test"; // Nome unico per l'appData che conterrà tutte le note
+const appDataName = "Note Test"; // Nome unico per l'appData che conterrà tutte le note
 sessionStorage.setItem("operatorName", "Mamma");
 sessionStorage.setItem("operatorSurname", "Mia");
 

@@ -316,10 +316,26 @@ export default {
     sortNotes(criteria) {
       switch (criteria) {
         case "Most":
-          this.notes.sort((a, b) => b.content.length - a.content.length);
+          this.notes.sort((a, b) => {
+            if (a.type === "classic" && b.type === "classic") {
+              return b.content.length - a.content.length;
+            } else if (a.type === "list" && b.type === "list") {
+              return b.items.length - a.items.length;
+            } else {
+              return 0; // Fallback if types don't match
+            }
+          });
           break;
         case "Least":
-          this.notes.sort((a, b) => a.content.length - b.content.length);
+          this.notes.sort((a, b) => {
+            if (a.type === "classic" && b.type === "classic") {
+              return a.content.length - b.content.length;
+            } else if (a.type === "list" && b.type === "list") {
+              return a.items.length - b.items.length;
+            } else {
+              return 0; // Fallback if types don't match
+            }
+          });
           break;
         case "Recent":
           this.notes.sort((a, b) => b.timestamp - a.timestamp);
@@ -327,9 +343,12 @@ export default {
         case "Oldest":
           this.notes.sort((a, b) => a.timestamp - b.timestamp);
           break;
+        default:
+          break;
       }
       this.saveAllNotes(); // Save after sorting
     },
+
     toggleNotesPerLine() {
       this.notesPerLine = this.notesPerLine === 1 ? 5 : 1;
     },
