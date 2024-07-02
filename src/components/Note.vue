@@ -121,6 +121,9 @@ export default {
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
   },
   methods: {
+    refreshPage() {
+      window.location.reload();
+    },
     async saveEdit() {
       const editedNote = {
         id: this.noteId,
@@ -143,6 +146,7 @@ export default {
       } catch (error) {
         console.error("Failed to save note:", error);
       }
+      this.refreshPage();
     },
     async deleteNote() {
       try {
@@ -156,6 +160,7 @@ export default {
       } catch (error) {
         console.error("Failed to delete note:", error);
       }
+      this.refreshPage();
     },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
@@ -205,6 +210,7 @@ export default {
       this.$emit("update-is-editing", false);
       this.$emit("update-is-occupied", false);
       this.showEditIcon = false;
+      this.refreshPage();
     },
     startEdit() {
       if (!this.isOccupied) {

@@ -94,7 +94,10 @@
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
           :key="note.id"
-          class="note-container"
+          :class="[
+            'note-container',
+            note.isAddButton ? 'add-note-container' : '',
+          ]"
           :draggable="!note.isAddButton"
         >
           <template v-if="note && !note.isAddButton">
