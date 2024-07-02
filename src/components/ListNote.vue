@@ -1,5 +1,5 @@
 <template>
-   <!-- Display note content when not editing -->
+  <!-- Display note content when not editing -->
   <div
     v-if="!isEditing"
     class="note"
@@ -61,7 +61,7 @@
             @mouseleave="showIcons = false"
             class="item-container"
           >
-          <!-- Checkbox for each item -->
+            <!-- Checkbox for each item -->
             <input
               :id="generateUniqueId('checkbox-modal', idx)"
               type="checkbox"
@@ -147,7 +147,7 @@ export default {
     };
   },
   watch: {
-     // Update newTitle when title prop changes
+    // Update newTitle when title prop changes
     title(newVal) {
       this.newTitle = newVal;
     },

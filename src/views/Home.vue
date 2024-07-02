@@ -62,7 +62,7 @@
         />
       </button>
     </div>
-     <!-- Divider Section -->
+    <!-- Divider Section -->
     <div
       class="divider"
       :class="{ 'divider-dark': isDarkTheme, 'divider-light': !isDarkTheme }"
@@ -92,7 +92,7 @@
         handle=".note-container"
         @start="handleDragStart"
       >
-      <!-- Loop through notes and render them -->
+        <!-- Loop through notes and render them -->
         <div
           v-for="(note, index) in filteredNotesWithAddButton"
           :key="note.id"

@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-   <!-- Note container -->
+  <!-- Note container -->
   <div
     v-if="!isEditing"
     class="note"
@@ -48,7 +48,7 @@
         placeholder="Enter content here"
         @input="handleTextareaInput"
       ></textarea>
-       <!-- Edit actions: Delete, Cancel, Save buttons -->
+      <!-- Edit actions: Delete, Cancel, Save buttons -->
       <div class="edit-actions">
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
@@ -121,7 +121,7 @@ export default {
     },
   },
   mounted() {
-      // Initialize formatted timestamp on component mount
+    // Initialize formatted timestamp on component mount
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
     this.isEditing = false;
   },
@@ -179,7 +179,7 @@ export default {
         this.isEditing = false;
       }
     },
-        // Format timestamp into a readable string
+    // Format timestamp into a readable string
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -206,7 +206,7 @@ export default {
     getCharLimit() {
       return this.notesPerLine === 5 ? 32 : 120;
     },
-     // Handle textarea input to format text within specified limits
+    // Handle textarea input to format text within specified limits
     handleTextareaInput() {
       var box = document.getElementById("textInput");
       const charlimit = this.getCharLimit();
