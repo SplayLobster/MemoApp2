@@ -125,6 +125,7 @@
               :isEditing="note.isEditing"
               :isOccupied="isOccupiedFromServer"
               :notesPerLine="notesPerLine"
+              :note-id="note.id"
               @update-title="updateTitle(index, $event)"
               @update-items="updateItems(index, $event)"
               @update-time="updateTime(index, $event)"

@@ -94,9 +94,15 @@
 </template>
 
 <script>
+import { loadNotes, saveNotes, updateNotes } from "../api/apiService.js";
+
 export default {
   name: "ListNote",
   props: {
+    noteId: {
+      type: [String, Number],
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -127,8 +133,8 @@ export default {
   },
   data() {
     return {
-      newTitle: "",
-      newItems: [],
+      newTitle: this.title,
+      newItems: this.items.map((item) => ({ ...item })),
       showEditIcon: false,
       showIcons: false,
       maxTitleLength: 25,
@@ -151,14 +157,46 @@ export default {
   mounted() {
     this.$emit("update-is-occupied", false); // Close editing mode
     this.$emit("update-is-editing", false); // Close editing mode
-    this.newTitle = this.title;
-    this.newItems = this.items.map((item) => ({ ...item }));
   },
   beforeDestroy() {
     this.$emit("update-is-editing", false); // Close editing mode
     this.$emit("update-is-occupied", false); // Close editing mode
   },
   methods: {
+    async saveEdit() {
+      const editedNote = {
+        id: this.noteId,
+        title: this.newTitle,
+        items: this.newItems,
+        timestamp: Date.now(),
+        utente: this.utente,
+      };
+
+      try {
+        await updateNotes(this.noteId, editedNote); // Update the specific note
+
+        this.$emit("update-title", this.newTitle);
+        this.$emit("update-items", this.newItems);
+        this.$emit("update-time", Date.now());
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
+        this.showEditIcon = false;
+      } catch (error) {
+        console.error("Failed to save note:", error);
+      }
+    },
+    async deleteNote() {
+      try {
+        const { notes } = await loadNotes();
+        const updatedNotes = notes.filter((note) => note.id !== this.noteId);
+        await saveNotes(updatedNotes, false);
+        this.$emit("delete-note");
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
+      } catch (error) {
+        console.error("Failed to delete note:", error);
+      }
+    },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -183,52 +221,25 @@ export default {
     generateUniqueId(prefix, index = "") {
       return `${prefix}-${this._uid}-${index}`;
     },
-    startEdit() {
-      if (!this.isOccupied) {
-        this.newTitle = this.title;
-        this.newItems = this.items.map((item) => ({ ...item }));
-
-        // Set isEditing to true
-        this.$emit("update-is-editing", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-        this.$emit("update-is-occupied", true);
-      }
-    },
     cancelEdit() {
-      // Reset newTitle and newItems
-      this.newTitle = "";
-      this.newItems = [];
-
-      // Set isEditing to false
+      this.newTitle = this.title;
+      this.newItems = this.items.map((item) => ({ ...item }));
       this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false); // Emit false to parent
-    },
-    saveEdit() {
-      // Emit updated title and items
-      this.$emit("update-title", this.newTitle);
-      this.$emit("update-items", this.newItems);
-      this.$emit("update-time", Date.now());
-
-      // Set isEditing to false
-      this.$emit("update-is-editing", false);
-      this.$emit("update-is-occupied", false); // Emit false to parent
-
-      // Clear newTitle and newItems
-      this.newTitle = "";
-      this.newItems = [];
+      this.$emit("update-is-occupied", false);
       this.showEditIcon = false;
     },
-    deleteNote() {
+    startEdit() {
       if (!this.isOccupied) {
-        this.$emit("delete-note");
-        this.$emit("update-is-editing", false); // Close editing mode
-        this.$emit("update-is-occupied", false); // Emit false to parent
+        this.$emit("update-is-editing", true);
+        this.newTitle = this.title;
+        this.newItems = this.items.map((item) => ({ ...item }));
       }
     },
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         this.saveEdit();
+        this.$emit("update-is-editing", false);
+        this.$emit("update-is-occupied", false);
       }
     },
     toggleItemCompleted(index) {
