@@ -342,16 +342,34 @@ export default {
       this.notes.splice(event.newIndex, 0, movedNote);
     },
     handleDragStart(event) {
-      event.item.style.opacity = "0"; // Hide the note being dragged
+      // Ignore drag if the item is an add button
+      if (
+        event.item &&
+        event.item.firstChild &&
+        event.item.firstChild.classList.contains("add-note")
+      ) {
+        event.preventDefault();
+        return;
+      }
+      event.item.style.opacity = "0";
       document.body.style.cursor = "grabbing";
-      event.item.style.cursor = "grabbing"; // Change cursor of dragged item
-      this.setDragImage(event);
+      event.item.style.cursor = "grabbing";
     },
     handleDragEnd(event) {
-      event.item.style.opacity = "1"; // Restore the note's visibility
+      // Ignore drag if the item is an add button
+      if (
+        event.item &&
+        event.item.firstChild &&
+        event.item.firstChild.classList.contains("add-note")
+      ) {
+        event.preventDefault();
+        return;
+      }
+      event.item.style.opacity = "1";
       document.body.style.cursor = "default";
       event.item.style.cursor = "grab";
       this.handleNoteReorder(event);
+      this.saveAllNotes();
     },
     addNote() {
       // Reset any previous note addition state
@@ -385,15 +403,6 @@ export default {
       this.notes.push(newNote);
       this.nextId++;
       this.addNote(); // Reset addingNoteType and save
-    },
-    setDragImage(event) {
-      // Set a transparent image as the drag image to remove ghosting
-      const dataTransfer =
-        event.dataTransfer || event.originalEvent.dataTransfer;
-      const transparentImg = new Image();
-      transparentImg.src =
-        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-      dataTransfer.setDragImage(transparentImg, 0, 0);
     },
   },
 };
@@ -590,7 +599,6 @@ export default {
 
 .dragging-chosen {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.564);
-  border: 1px solid #e0e0e0;
 }
 .fade-enter-active,
 .fade-leave-active {
