@@ -17,14 +17,20 @@
     "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/plugin-transform-runtime": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
     "@rushstack/eslint-patch": "^1.1.0",
     "@vitejs/plugin-legacy": "^2.0.0",
     "@vitejs/plugin-vue2": "^1.1.2",
     "@vue/eslint-config-prettier": "^7.0.0",
+    "core-js": "^3.37.1",
     "eslint": "^8.5.0",
     "eslint-plugin-vue": "^9.0.0",
     "prettier": "^2.5.1",
+    "regenerator-runtime": "^0.14.1",
     "terser": "^5.14.2",
-    "vite": "^3.0.2"
+    "vite": "^3.0.2",
+    "vite-plugin-babel": "^1.2.0"
   }
 }
