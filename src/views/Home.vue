@@ -381,6 +381,7 @@ export default {
   align-items: center;
   flex-grow: 1; /* Take up remaining space */
   position: relative;
+  min-width: none;
   margin-left: 15px; /* Spacing from the title */
   height: 25px;
 }
@@ -438,6 +439,7 @@ export default {
 
 /* Clear icon */
 .clear-icon {
+  font-size: 25px;
   position: absolute;
   right: 45px; /* Adjust as needed */
   top: 50%; /* Center vertically */

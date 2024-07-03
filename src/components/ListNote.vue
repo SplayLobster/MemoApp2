@@ -9,7 +9,7 @@
   >
     <!-- Note Content -->
     <div class="note-content">
-      <h3 v-if="title">{{ title }}</h3>
+      <h2 v-if="title">{{ title }}</h2>
       <h3 v-else class="placeholder">Title</h3>
       <ul>
         <!-- List items -->
@@ -350,7 +350,7 @@ li {
 
 /* Text styling */
 .item-text {
-  font-size: 13px;
+  font-size: 16px;
   flex: 1; /* To make item text take remaining space */
 }
 

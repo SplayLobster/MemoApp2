@@ -11,10 +11,12 @@
     <!-- Display Note Content when not editing -->
     <div v-if="!isEditing" class="note-content">
       <!-- Display title if exists, otherwise show placeholder -->
-      <h3 v-if="title">{{ title }}</h3>
+      <h2 v-if="title">{{ title }}</h2>
       <!-- Display truncated content or placeholder if empty -->
       <h3 v-else class="placeholder">Title</h3>
-      <pre v-if="content">{{ truncateContent(content) }}</pre>
+      <pre style="font-size: 16px" v-if="content">{{
+        truncateContent(content)
+      }}</pre>
       <pre v-else class="placeholder">Write a note</pre>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
@@ -347,7 +349,7 @@ textarea {
   color: var(--note-text-color);
   width: 100%;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 18px;
   padding: 10px;
   resize: none; /* Disable textarea resizing */
   border: none; /* Remove border */
