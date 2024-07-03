@@ -1,13 +1,9 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="home">
     <!-- Header Section -->
     <div class="header">
-      <!-- Title with dynamic classes based on theme -->
-      <button type="button" class="logo-container" @click="refreshPage">
-        <img src="../assets/logo.png" alt="Logo" class="logo" />
-      </button>
-      <h1 :class="{ 'title-dark': isDarkTheme, 'title-light': !isDarkTheme }">
+      <!-- Title -->
+      <h1 style="cursor: pointer" :class="'title-dark'" @click="refreshPage">
         Memo
       </h1>
       <!-- Search bar with search functionality -->
@@ -16,9 +12,10 @@
         <input
           type="text"
           v-model="searchQuery"
-          placeholder="Search..."
+          placeholder="Cerca titolo, utente..."
           class="search-input"
           id="searchInput"
+          @input="handleSearchInput"
         />
         <i
           v-if="searchQuery"
@@ -26,49 +23,9 @@
           @click="clearSearch"
         ></i>
       </div>
-      <!-- Toggle theme button -->
-      <button class="theme-toggle" @click="toggleTheme">
-        <i
-          :class="[
-            'fas',
-            isDarkTheme ? 'fa-sun' : 'fa-moon',
-            isDarkTheme ? 'text-yellow-400' : 'text-gray-800',
-          ]"
-        ></i>
-      </button>
-      <!-- Toggle notes per line button -->
-      <button class="toggle-button" @click="toggleNotesPerLine">
-        <img
-          v-if="notesPerLine === 1 && isDarkTheme"
-          src="../assets/grid-dark.png"
-          alt="List View"
-          class="toggle-icon"
-        />
-        <img
-          v-else-if="notesPerLine === 5 && isDarkTheme"
-          src="../assets/list-dark.png"
-          alt="Grid View"
-          class="toggle-icon"
-        />
-        <img
-          v-else-if="notesPerLine === 1 && !isDarkTheme"
-          src="../assets/grid-light.png"
-          alt="List View"
-          class="toggle-icon"
-        />
-        <img
-          v-else-if="notesPerLine === 5 && !isDarkTheme"
-          src="../assets/list-light.png"
-          alt="Grid View"
-          class="toggle-icon"
-        />
-      </button>
     </div>
     <!-- Divider Section -->
-    <div
-      class="divider"
-      :class="{ 'divider-dark': isDarkTheme, 'divider-light': !isDarkTheme }"
-    ></div>
+    <div class="divider" :class="'divider-dark'"></div>
 
     <!-- Controls Section -->
     <div class="controls">
@@ -78,21 +35,18 @@
     </div>
 
     <!-- Note Grid Section -->
-    <div class="note-grid">
+    <div>
       <!-- Draggable component for notes -->
       <draggable
         :value="filteredNotesWithAddButton"
-        :class="['notes-grid', { 'single-column': notesPerLine == 1 }]"
+        :class="'notes-grid'"
         group="notes"
         :item-key="(note) => note.id"
-        :style="{ gridTemplateColumns: `repeat(${notesPerLine}, 1fr)` }"
         @end="handleDragEnd"
         v-bind="$attrs"
         v-on="$listeners"
         handle=".note-container"
         @start="handleDragStart"
-        ghostClass="dragging-ghost"
-        chosenClass="dragging-ghost"
       >
         <!-- Loop through notes and render them -->
         <div
@@ -101,8 +55,11 @@
           :class="[
             'note-container',
             note.isAddButton ? 'add-note-container' : '',
+            { dragging: noteDragging === note.id },
           ]"
           :draggable="!note.isAddButton ? 'true' : 'false'"
+          @dragstart="noteDragging = note.id"
+          @dragend="noteDragging = null"
         >
           <template v-if="note && !note.isAddButton">
             <!-- Render existing notes -->
@@ -112,7 +69,6 @@
               :content="note.content"
               :timestamp="note.timestamp"
               :utente="note.utente"
-              :notesPerLine="notesPerLine"
               :note-id="note.id"
               :index="index"
               @update-note="updateNote(index, $event.action, $event.data)"
@@ -123,7 +79,6 @@
               :items="note.items"
               :timestamp="note.timestamp"
               :utente="note.utente"
-              :notesPerLine="notesPerLine"
               :note-id="note.id"
               @update-note="updateNote(index, $event.action, $event.data)"
             />
@@ -134,7 +89,7 @@
               <div @click="addNote('Classic')" class="add-button-classic">
                 <!-- Add Classic Note -->
                 <i class="fas fa-plus"></i>
-                <span>Add Classic Note</span>
+                <span>Nota</span>
               </div>
 
               <!-- Divider between Add Buttons -->
@@ -144,7 +99,7 @@
               <div @click="addNote('List')" class="add-button-list">
                 <!-- Add List Note -->
                 <i class="fas fa-plus"></i>
-                <span>Add List Note</span>
+                <span>Lista</span>
               </div>
             </div>
           </template>
@@ -174,10 +129,9 @@ export default {
     return {
       notes: [],
       nextId: 1,
+      noteDragging: null,
       searchQuery: "",
       utente: "",
-      notesPerLine: parseInt(localStorage.getItem("PerLine")) || 5, // Default to 5 notes if no criteria is set
-      isDarkTheme: localStorage.getItem("theme") === "dark", // Default to dark if no criteria is set
     };
   },
   computed: {
@@ -201,10 +155,6 @@ export default {
   },
 
   async mounted() {
-    // Check local storage for theme preference
-    const savedTheme = localStorage.getItem("theme");
-    this.isDarkTheme = savedTheme === "dark";
-    this.applyTheme();
     // Retrieve user information from session storage
     let operatorName = sessionStorage.getItem("operatorName");
     let operatorSurname = sessionStorage.getItem("operatorSurname");
@@ -236,29 +186,11 @@ export default {
         console.error("Error saving notes:", error);
       }
     },
-    // Toggle theme between 5 and 1 note per line
-    toggleNotesPerLine() {
-      this.notesPerLine = this.notesPerLine === 5 ? 1 : 5;
-      localStorage.setItem("PerLine", this.notesPerLine);
-    },
-    // Toggle theme between light and dark
-    toggleTheme() {
-      this.isDarkTheme = !this.isDarkTheme;
-      this.applyTheme();
-      localStorage.setItem("theme", this.isDarkTheme ? "dark" : "light");
-    },
-    // Apply selected theme
-    applyTheme() {
-      const themeClass = this.isDarkTheme ? "dark-theme" : "light-theme";
-      document.body.classList.toggle("dark-theme", this.isDarkTheme);
-      document.documentElement.setAttribute("data-theme", themeClass);
-    },
     // Start search function
     startSearch() {
       if (this.searchQuery.trim() !== "") {
         this.search();
       }
-      this.refreshPage();
     },
     // Perform search based on query
     search() {
@@ -275,6 +207,18 @@ export default {
     clearSearch() {
       this.searchQuery = "";
     },
+    // Handle input in the search bar
+    handleSearchInput() {
+      // Adjust the search input width based on content
+      const inputElement = document.getElementById("searchInput");
+      if (inputElement) {
+        inputElement.style.width = `${Math.max(
+          100,
+          this.searchQuery.length * 10
+        )}px`;
+      }
+    },
+
     // Sort notes function
     sortNotes(criteria) {
       switch (criteria) {
@@ -328,6 +272,7 @@ export default {
         return;
       }
       event.item.style.opacity = "0";
+      event.clone.style.opacity = "1000";
       document.body.style.cursor = "grabbing";
       event.item.style.cursor = "grabbing";
     },
@@ -348,13 +293,12 @@ export default {
       this.handleNoteReorder(event);
       this.saveAllNotes();
     },
-
     // Add new note function
     async addNote(type) {
       let addingNoteType = type;
       let newNote;
 
-      // Differenting the type of notes
+      // Differentiating the type of notes
       if (addingNoteType === "Classic") {
         newNote = {
           title: "",
@@ -380,7 +324,6 @@ export default {
 
       try {
         // Save the new note using updateNotes function
-        //await saveNotes(this.notes);
         await updateNotes(newNote.id, newNote);
 
         // Refresh the page after saving
@@ -394,92 +337,117 @@ export default {
 </script>
 
 <style scoped>
+/* Import main styles */
 @import "../assets/main.css";
+
+/* App container */
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Ensure full viewport height */
+  height: 100vh;
   background-color: var(--background-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Home container */
 .home {
-  flex-grow: 1; /* Allow to grow and take remaining space */
+  flex-grow: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
 }
 
+/* Header */
 .header {
   display: flex;
   align-items: center;
-  gap: 15px; /* Control distance between logo, title, and search bar */
+  gap: 15px;
   margin-bottom: 1.5%;
-  height: 20px;
+  height: 40px; /* Ensure height allows alignment */
   position: relative;
+  width: 100%;
 }
 
-.divider {
-  background-color: var(--text-color);
-}
-
-.logo-container {
-  background-color: var(--background-color);
-  border: transparent;
-  height: 40px; /* Adjust size as needed */
-  width: auto; /* Maintain aspect ratio */
-}
-.logo {
-  background-color: var(--background-color);
-  border: transparent;
+/* Title */
+.header h1 {
   cursor: pointer;
-  height: 40px; /* Adjust size as needed */
-  width: auto; /* Maintain aspect ratio */
+  margin: 0; /* Remove margin for better alignment */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
+/* Search container */
 .search-container {
   display: flex;
   align-items: center;
+  flex-grow: 1; /* Take up remaining space */
   position: relative;
-  margin-left: 10%; /* Distance from logo/title */
+  margin-left: 15px; /* Spacing from the title */
 }
 
+/* Search icon */
 .search-icon {
   cursor: pointer;
   position: absolute;
-  left: 10px;
+  left: 10px; /* Adjust for padding */
   font-size: 14px;
-  color: #565656;
+  color: #ffff;
 }
 
+/* Search text */
+.search-text {
+  position: absolute;
+  top: -8px; /* Place on top border */
+  left: 15px; /* Align with search input */
+  background-color: var(--background-color); /* Match background */
+  padding: 0 5px; /* Add padding around text */
+  color: var(--text-color); /* Match text color */
+  font-size: 12px;
+  pointer-events: none; /* Ensure it's not interactive */
+  z-index: 1; /* Ensure it is above the input */
+}
+
+/* Search input */
 .search-input {
+  flex-grow: 1;
   font-size: 16px;
-  width: 450px;
-  padding: 10px 18px 10px 40px; /* Added left padding for the icon */
+  padding: 10px 40px 10px 40px; /* Space for search icon and clear icon */
   background-color: var(--search-bar-background-color);
   border: 2px solid;
   border-color: var(--note-background-color);
   border-radius: 10px;
   color: var(--text-color);
   transition: background-color 0.3s ease, border-color 0.3s ease,
-    box-shadow 0.3s ease;
-  outline: none; /* Remove default focus outline */
+    box-shadow 0.3s ease, width 0.3s ease; /* Add width transition */
+  outline: none;
+  caret-color: #4a7daa;
 }
 
+/* Focus state */
 .search-input:focus {
-  background-color: var(
-    --note-background-color
-  ); /* Change background color on focus */
-  border-color: #2a577e; /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(136, 141, 148, 0.566); /* Add box shadow for highlighting */
+  border-color: #2a577e;
+  box-shadow: 0 0 5px transparent;
 }
+
+/* Show clear icon when there is input */
+.search-input:not(:placeholder-shown) + .clear-icon {
+  opacity: 1;
+  right: 10px; /* Adjust to position the clear icon */
+}
+
+/* Clear icon */
 .clear-icon {
   position: absolute;
-  right: 1rem;
+  right: 45px; /* Adjust as needed */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%);
   cursor: pointer;
-  color: #565656;
+  color: #ffff;
   background-color: transparent;
+  transition: opacity 0.3s ease, right 0.3s ease; /* Add transition for opacity and position */
+  opacity: 0; /* Initially hidden */
 }
+
+/* Controls */
 .controls {
   display: flex;
   align-items: center;
@@ -487,95 +455,63 @@ export default {
   margin-bottom: 10px;
   margin-right: 0.5%;
 }
+
+/* Notes control */
 .notes-control {
   display: flex;
   align-items: left;
 }
+
+/* Sort dropdown */
 .sort-dropdown {
   margin-left: auto;
 }
-.toggle-button {
-  position: relative; /* Absolutely position within the .header */
-  left: 0; /* Align to the right edge */
-  top: 140%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust vertical alignment */
-  background-color: transparent;
-  color: inherit;
-  border: none;
-  border-radius: 50%;
-  padding: 10px; /* Adjust padding */
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-}
 
-.toggle-icon {
-  width: 30px;
-  height: 30px;
-}
-
-.theme-toggle {
-  position: absolute; /* Absolutely position within the .header */
-  right: 0; /* Align to the right edge */
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust vertical alignment */
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-}
-
-/* Note grid and container styles */
+/* Notes grid */
 .notes-grid {
   display: grid;
   gap: 20px;
   flex-grow: 1;
   overflow-y: auto;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(5, 1fr); /* 5 notes per row */
 }
 
-/* Adjust styles for single-column mode */
-.single-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center the notes horizontally */
-  justify-content: flex-start;
-}
-
-/* Center notes and ensure they are one per line */
-.single-column .note-container {
-  width: 100%;
-  max-width: 700px; /* Define a maximum width to limit size */
-  margin-bottom: 20px; /* Space between notes */
-}
+/* Note container */
 .note-container {
+  min-height: 120px;
+  width: 100%;
+  max-width: 300px; /* Adjusted width for 5 notes per row */
+  margin-bottom: 20px;
   cursor: grab;
   display: block;
   justify-content: center;
   background-color: transparent;
   color: var(--note-text-color);
-  width: 100%;
+  overflow: hidden;
+  transition: opacity 0.3s ease; /* Add opacity transition */
 }
 
+/* Add note button */
 .add-note {
-  max-width: 700px;
   width: 100%;
+  max-width: 300px; /* Adjusted width for 5 notes per row */
   height: 120px;
   background-color: #f0f0f0;
-  border: 2px dashed #ccc;
+  border: #ccc;
   color: #aaa;
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 2px;
   cursor: pointer;
   transition: background-color 0.3s ease;
   padding: 10px;
   flex-direction: row-reverse;
+  transition: background-color 0.3s ease, opacity 0.3s ease; /* Add opacity transition */
 }
 
+/* Add button hover effect */
 .add-button-classic,
 .add-button-list {
   flex-grow: 1;
@@ -593,30 +529,38 @@ export default {
   background-color: #e0e0e0;
 }
 
+/* Divider between add buttons */
 .add-divider {
   border-left: 1px solid var(--add-divider-color);
   height: 120%;
   margin: 0 5px;
 }
-
-/* Remove ghost effect */
-.dragging-ghost {
-  opacity: 1;
-  transform: none;
-  border: 2px solid var(--note-text-color);
+/* Ensure dragged item is fully visible */
+.note-container.dragging,
+.add-note.dragging {
+  opacity: 0.9; /* Adjust opacity as needed */
 }
 
-/* Responsive styles for smaller screens */
+/* Ensure dragged item is fully visible */
+.dragging {
+  opacity: 0.9; /* Adjust opacity as needed */
+}
+
+/* Responsive styles */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
+  .notes-grid {
+    grid-template-columns: repeat(3, 1fr); /* Adjusted for smaller screens */
+  }
+  .search-container {
+    margin-left: 0; /* Adjust for smaller screens */
+  }
 
-  .theme-toggle {
-    position: static;
-    transform: none;
-    margin-left: auto;
+  .search-input {
+    margin-left: 0; /* Adjust to ensure proper spacing */
   }
 }
 </style>

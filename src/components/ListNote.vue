@@ -25,7 +25,7 @@
             v-model="item.completed"
             class="item-checkbox"
           />
-          <div style="font-size: 12px" :class="{ completed: item.completed }">
+          <div class="item-text" :class="{ completed: item.completed }">
             {{ truncatedText(item.text) }}
           </div>
         </li>
@@ -96,7 +96,7 @@
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
+        <button @click.stop="cancelEdit" class="cancel-btn">X</button>
         <button @click.stop="saveEdit" class="save-btn">Save</button>
       </div>
     </div>
@@ -127,10 +127,6 @@ export default {
     },
     timestamp: {
       type: [String, Number],
-      required: true,
-    },
-    notesPerLine: {
-      type: Number,
       required: true,
     },
   },
@@ -305,8 +301,7 @@ export default {
     --note-background-color
   ); /* Use your custom note background color */
   color: var(--note-text-color); /* Use your custom note text color */
-  border: 1px solid #d1d1d1;
-  border-radius: 15px;
+  border: 1px solid transparent;
   padding: 20px;
   width: 80%;
   max-width: 600px;
@@ -329,14 +324,11 @@ li {
 }
 
 /* Checkbox styling */
-input[type="checkbox"] {
-  margin-right: 10px; /* Spacing between checkbox and text */
-}
 .item-container {
   display: flex;
   align-items: center;
   width: 100%;
-  justify-content: space-between; /* Ensures the "X" button is at the right end */
+  justify-content: flex-start; /* Align items to the left */
 }
 
 .item-checkbox {
@@ -346,7 +338,6 @@ input[type="checkbox"] {
   width: 16px;
   height: 16px;
   border: 1px solid #878a8e;
-  border-radius: 3px;
   margin-right: 10px;
   background-color: var(--note-background-color); /* Match note background */
   cursor: pointer;
@@ -360,6 +351,7 @@ input[type="checkbox"] {
 
 /* Text styling */
 .item-text {
+  font-size: 13px;
   flex: 1; /* To make item text take remaining space */
 }
 
@@ -379,18 +371,23 @@ input[type="checkbox"] {
 }
 .note {
   background-color: var(--note-background-color);
-  position: relative;
-  z-index: 1;
+  position: relative; /* Aggiungiamo posizione relativa per gestire posizione del modal */
+  z-index: 1; /* Impostiamo z-index per assicurare che le note siano sopra il modal */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border: 1px solid transparent;
+  position: relative;
   transition: box-shadow 0.3s ease;
-  width: 100%;
+  height: 120px;
+  width: 100%; /* Note takes full width of its container */
   max-width: 700px;
+  display: block;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Ensure position relative for absolute icon */
   user-select: none;
 }
 
@@ -451,51 +448,60 @@ input[type="checkbox"] {
   margin-left: 10px;
 }
 
-.delete-btn,
 .delete-btn-modal {
   position: absolute;
   cursor: pointer;
   font-size: 70%;
-  top: 10px;
-  right: 10px;
+  bottom: 10px;
+  left: 10px;
   color: red;
   background-color: transparent;
   border-color: transparent;
 }
-.delete-btn-modal {
-  font-size: 94%;
+.delete-btn {
+  position: absolute;
+  cursor: pointer;
+  top: 5px;
+  right: 5px;
+  font-size: 70%;
+  color: red;
+  background-color: transparent;
+  border-color: transparent;
 }
 .save-btn {
   font-size: 16px;
-  border-radius: 5px;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-color: #b9b9b900;
-  background-color: #b9b9b900;
+  border-color: #b9b9b92f;
+  background-color: #b9b9b92f;
 }
 .save-btn:hover {
-  border-color: #b9b9b92f;
-  background-color: #b9b9b92f;
+  border-color: #b9b9b9c4;
+  background-color: #b9b9b9c5;
 }
 .cancel-btn {
+  position: absolute;
+  cursor: pointer;
+  top: 10px;
+  right: 10px;
   font-size: 16px;
-  border-radius: 5px;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-color: #b9b9b900;
-  background-color: #b9b9b900;
-}
-.cancel-btn:hover {
+  border-radius: 30%;
   border-color: #b9b9b92f;
   background-color: #b9b9b92f;
+}
+.cancel-btn:hover {
+  border-color: #b9b9b9c4;
+  background-color: #b9b9b9c5;
 }
 .utente {
   color: rgb(196, 196, 196);

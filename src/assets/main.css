@@ -15,11 +15,11 @@ body {
 
 /* Define light theme variables */
 :root {
-  --background-color: #ffffff;
-  --text-color: #283442;
-  --note-background-color: #ffffff;
-  --search-bar-background-color: #e0e0e0af;
-  --icon-color: #283442;
+  --background-color: #283442;
+  --text-color: #e8eaed;
+  --icon-color: #e8eaed;
+  --note-background-color: #414b57;
+  --search-bar-background-color: #2a3543;
 }
 
 /* Define dark theme variables */
@@ -31,27 +31,9 @@ body.dark-theme {
   --search-bar-background-color: #2a3543;
 }
 
-.theme-toggle i {
-  font-size: 1.5rem; /* Adjust icon size */
-  transition: color 0.3s ease; /* Smooth color transition */
-}
-
-.theme-toggle i.text-yellow-400 {
-  color: #ffe484; /* Yellow color for light theme */
-}
-
-.theme-toggle i.text-gray-800 {
-  color: #f6f1d5; /* Gray color for dark theme */
-}
 /* Divider styling */
 .divider-dark {
   background-color: #5f6368; /* Dark theme divider color */
-  height: 2px;
-  margin-bottom: 20px 0;
-}
-
-.divider-light {
-  background-color: #dadce0; /* Light theme divider color */
   height: 2px;
   margin-bottom: 20px 0;
 }
@@ -65,24 +47,7 @@ body.dark-theme {
   position: relative;
   top: -1.5px;
   vertical-align: middle;
-  background: linear-gradient(90deg, #fdd835, #ffc107, #ffeb3b, #fff176, #ffee58, #fbc02d, #f57f17);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: bold;
-}
-
-.title-light {
-  color: #000000;
-  display: inline-block;
-  font-family: 'Product Sans', Arial, sans-serif;
-  font-size: 22px;
-  line-height: 24px;
-  padding-left: 8px;
-  position: relative;
-  top: -1.5px;
-  vertical-align: middle;
-  background: linear-gradient(90deg, #795548, #8d6e63, #a1887f, #9e9491, #736d6a, #6d4c41, #5d4037);
+  background: linear-gradient(90deg, #42a5f5, #64b5f6, #90caf9, #bbdefb, #e3f2fd, #2196f3, #1e88e5, #1976d2);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

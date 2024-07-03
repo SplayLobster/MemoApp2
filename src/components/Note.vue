@@ -14,7 +14,7 @@
       <h3 v-if="title">{{ title }}</h3>
       <!-- Display truncated content or placeholder if empty -->
       <h3 v-else class="placeholder">Title</h3>
-      <pre v-if="content">{{ truncateContent(content, getCharLimit) }}</pre>
+      <pre v-if="content">{{ truncateContent(content) }}</pre>
       <pre v-else class="placeholder">Write a note</pre>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
@@ -53,7 +53,7 @@
         <button class="delete-btn-modal" @click.stop="deleteNote">
           <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button @click.stop="cancelEdit" class="cancel-btn">Cancel</button>
+        <button @click.stop="cancelEdit" class="cancel-btn">X</button>
         <button @click.stop="saveEdit" class="save-btn">Save</button>
       </div>
     </div>
@@ -88,11 +88,6 @@ export default {
     timestamp: {
       // Timestamp when note was created
       type: [String, Number],
-      required: true,
-    },
-    notesPerLine: {
-      // Number of notes per line in the grid
-      type: Number,
       required: true,
     },
   },
@@ -202,14 +197,10 @@ export default {
         return content;
       }
     },
-    // Get character limit based on number of notes per line
-    getCharLimit() {
-      return this.notesPerLine === 5 ? 32 : 120;
-    },
     // Handle textarea input to format text within specified limits
     handleTextareaInput() {
       var box = document.getElementById("textInput");
-      const charlimit = this.getCharLimit();
+      const charlimit = this.maxCharsPerLine;
       box.onkeyup = function () {
         var lines = box.value.split("\n");
         for (var i = 0; i < lines.length; i++) {
@@ -287,8 +278,7 @@ export default {
 .modal-content {
   background-color: var(--note-background-color);
   color: var(--note-text-color);
-  border: 1px solid #d1d1d1;
-  border-radius: 15px;
+  border: 1px solid transparent;
   padding: 20px;
   width: 80%;
   max-width: 600px;
@@ -306,10 +296,10 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border: 1px solid transparent;
   position: relative;
   transition: box-shadow 0.3s ease;
+  min-height: 120px;
   width: 100%; /* Note takes full width of its container */
   max-width: 700px;
   display: block;
@@ -378,9 +368,9 @@ textarea {
 .delete-btn-modal {
   position: absolute;
   cursor: pointer;
-  font-size: 94%;
-  top: 10px;
-  right: 10px;
+  font-size: 70%;
+  bottom: 10px;
+  left: 10px;
   color: red;
   background-color: transparent;
   border-color: transparent;
@@ -398,35 +388,38 @@ textarea {
 
 .save-btn {
   font-size: 16px;
-  border-radius: 5px;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-color: #b9b9b900;
-  background-color: #b9b9b900;
+  border-color: #b9b9b92f;
+  background-color: #b9b9b92f;
 }
 .save-btn:hover {
-  border-color: #b9b9b92f;
-  background-color: #b9b9b92f;
+  border-color: #b9b9b9c4;
+  background-color: #b9b9b9c5;
 }
 .cancel-btn {
+  position: absolute;
+  cursor: pointer;
+  top: 10px;
+  right: 10px;
   font-size: 16px;
-  border-radius: 5px;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-color: #b9b9b900;
-  background-color: #b9b9b900;
-}
-.cancel-btn:hover {
+  border-radius: 30%;
   border-color: #b9b9b92f;
   background-color: #b9b9b92f;
+}
+.cancel-btn:hover {
+  border-color: #b9b9b9c4;
+  background-color: #b9b9b9c5;
 }
 .utente {
   color: rgb(196, 196, 196);
