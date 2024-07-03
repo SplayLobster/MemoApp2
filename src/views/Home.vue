@@ -382,6 +382,7 @@ export default {
   flex-grow: 1; /* Take up remaining space */
   position: relative;
   margin-left: 15px; /* Spacing from the title */
+  height: 25px;
 }
 
 /* Search icon */
@@ -408,8 +409,9 @@ export default {
 
 /* Search input */
 .search-input {
+  height: 55px;
   flex-grow: 1;
-  font-size: 16px;
+  font-size: 18px;
   padding: 10px 40px 10px 40px; /* Space for search icon and clear icon */
   background-color: var(--search-bar-background-color);
   border: 2px solid;
@@ -488,7 +490,7 @@ export default {
   background-color: transparent;
   color: var(--note-text-color);
   overflow: hidden;
-  transition: opacity 0.3s ease; /* Add opacity transition */
+  transition: opacity 0.8s ease; /* Add opacity transition */
 }
 
 /* Add note button */
@@ -505,10 +507,9 @@ export default {
   justify-content: center;
   border-radius: 2px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
   padding: 10px;
   flex-direction: row-reverse;
-  transition: background-color 0.3s ease, opacity 0.3s ease; /* Add opacity transition */
+  transition: background-color 0.8s ease, opacity 0.8s ease; /* Add opacity transition */
 }
 
 /* Add button hover effect */
@@ -519,7 +520,7 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.8s ease;
   padding: 10px;
   margin: 0 5px;
 }
@@ -538,12 +539,12 @@ export default {
 /* Ensure dragged item is fully visible */
 .note-container.dragging,
 .add-note.dragging {
-  opacity: 0.9; /* Adjust opacity as needed */
+  opacity: 100%; /* Adjust opacity as needed */
 }
 
 /* Ensure dragged item is fully visible */
 .dragging {
-  opacity: 0.9; /* Adjust opacity as needed */
+  opacity: 100%; /* Adjust opacity as needed */
 }
 
 /* Responsive styles */

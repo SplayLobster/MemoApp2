@@ -164,8 +164,6 @@ export default {
     },
     startEdit() {
       this.isEditing = true;
-      this.newTitle = this.title;
-      this.newContent = this.content;
     },
     // Handle click outside the modal to save edits
     handleClickOutside(event) {
@@ -273,6 +271,7 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 999; /* Modal sopra tutto il resto */
+  cursor: default;
 }
 
 .modal-content {
@@ -403,7 +402,6 @@ textarea {
 }
 .cancel-btn {
   position: absolute;
-  cursor: pointer;
   top: 10px;
   right: 10px;
   font-size: 16px;

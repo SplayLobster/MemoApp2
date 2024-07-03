@@ -211,8 +211,6 @@ export default {
     // Start editing
     startEdit() {
       this.isEditing = true;
-      this.newTitle = this.title;
-      this.newItems = this.items.map((item) => ({ ...item }));
     },
     // Handle click outside modal
     handleClickOutside(event) {
@@ -293,6 +291,7 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 999; /* Ensures the modal is above everything else */
+  cursor: default;
 }
 
 /* Modal content */
@@ -381,7 +380,7 @@ li {
   border: 1px solid transparent;
   position: relative;
   transition: box-shadow 0.3s ease;
-  height: 120px;
+  min-height: 120px;
   width: 100%; /* Note takes full width of its container */
   max-width: 700px;
   display: block;
@@ -485,7 +484,6 @@ li {
 }
 .cancel-btn {
   position: absolute;
-  cursor: pointer;
   top: 10px;
   right: 10px;
   font-size: 16px;
