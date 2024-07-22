@@ -23,6 +23,7 @@
           @click="clearSearch"
         ></i>
       </div>
+      
     </div>
     <!-- Divider Section -->
     <div class="divider" :class="'divider-dark'"></div>
