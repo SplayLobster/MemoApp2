@@ -366,61 +366,40 @@ textarea {
   gap: 10px; /* Space between buttons */
 }
 
-.delete-btn-modal {
-  position: absolute;
+.save-btn, .cancel-btn, .delete-btn-modal {
+  font-size: 16px;
+  padding: 10px 15px; /* Regola il padding come preferisci */
   cursor: pointer;
-  font-size: 70%;
-  bottom: 10px;
-  left: 10px;
-  color: red;
-  background-color: transparent;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f; /* Colore di sfondo base */
   border-color: transparent;
-}
-.delete-btn {
-  position: absolute;
-  cursor: pointer;
-  top: 5px;
-  right: 5px;
-  font-size: 70%;
-  color: red;
-  background-color: transparent;
-  border-color: transparent;
+  border-radius: 0; /* Assicura che i bordi siano squadrati */
+  transition: background-color 0.3s ease;
 }
 
-.save-btn {
-  font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  cursor: pointer;
-  color: var(--note-text-color);
-  border-color: #b9b9b92f;
-  background-color: #b9b9b92f;
+.save-btn:hover, .cancel-btn:hover, .delete-btn-modal:hover {
+  background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
 }
-.save-btn:hover {
-  border-color: #b9b9b9c4;
-  background-color: #b9b9b9c5;
-}
+
 .cancel-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 18px;
+  right: 28px;
   font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 10px 15px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-radius: 30%;
-  border-color: #b9b9b92f;
+  border: none;
   background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
 }
+
 .cancel-btn:hover {
-  border-color: #b9b9b9c4;
   background-color: #b9b9b9c5;
 }
+
 .utente {
   color: rgb(196, 196, 196);
   position: absolute;

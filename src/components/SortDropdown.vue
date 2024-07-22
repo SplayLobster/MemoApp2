@@ -98,6 +98,7 @@ export default {
 }
 
 .btn {
+  position:absolute;
   padding: 8px 16px;
   font-size: 14px;
   background-color: #7c7c7c00;
