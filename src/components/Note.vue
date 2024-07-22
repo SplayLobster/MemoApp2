@@ -366,7 +366,7 @@ textarea {
   gap: 10px; /* Space between buttons */
 }
 
-.save-btn, .cancel-btn, .delete-btn-modal {
+.save-btn, .delete-btn-modal {
   font-size: 16px;
   padding: 10px 15px; /* Regola il padding come preferisci */
   cursor: pointer;
@@ -378,10 +378,22 @@ textarea {
   transition: background-color 0.3s ease;
 }
 
-.save-btn:hover, .cancel-btn:hover, .delete-btn-modal:hover {
+.save-btn:hover, .delete-btn-modal:hover {
   background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
 }
-
+.delete-btn{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 10px;
+  right: 15px;
+  font-size: 8px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease; 
+}
 .cancel-btn {
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
   top: 18px;

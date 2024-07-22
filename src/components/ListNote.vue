@@ -185,7 +185,7 @@ export default {
       } catch (error) {
         console.error("Failed to save note:", error);
       }
-      this.refreshPage();
+      //this.refreshPage();
     },
     // Delete note
     async deleteNote() {
@@ -198,7 +198,7 @@ export default {
       } catch (error) {
         console.error("Failed to delete note:", error);
       }
-      this.refreshPage();
+      //this.refreshPage();
     },
     // Cancel editing
     cancelEdit() {
@@ -206,7 +206,7 @@ export default {
       this.newItems = this.items.map((item) => ({ ...item }));
       this.isEditing = false;
       this.showEditIcon = false;
-      this.refreshPage();
+      //this.refreshPage();
     },
     // Start editing
     startEdit() {
@@ -398,8 +398,20 @@ li {
   white-space: pre-wrap;
   max-width: 100%;
 }
-
-.save-btn, .cancel-btn, .delete-btn-modal {
+.delete-btn{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 10px;
+  right: 15px;
+  font-size: 8px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease; 
+}
+.save-btn, .delete-btn-modal {
   font-size: 16px;
   padding: 10px 15px; /* Regola il padding come preferisci */
   cursor: pointer;
@@ -411,7 +423,7 @@ li {
   transition: background-color 0.3s ease;
 }
 
-.save-btn:hover, .cancel-btn:hover, .delete-btn-modal:hover {
+.save-btn:hover, .delete-btn-modal:hover {
   background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
 }
 

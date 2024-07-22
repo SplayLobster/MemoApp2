@@ -93,7 +93,7 @@ export default {
 
 <style scoped>
 .dropdown {
-  position: relative;
+  position: absloute;
   display: inline-block;
 }
 
@@ -138,7 +138,7 @@ export default {
   pointer-events: auto;
 }
 .dropdown-item {
-  text-align: center;
+  position:absolute;
   display: block;
   padding: 10px 20px;
   clear: both;
