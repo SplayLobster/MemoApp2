@@ -44,15 +44,15 @@ export default {
   methods: {
     printCriteria(selectedCriteria) {
       if (selectedCriteria == "Oldest") {
-        return "Old>Rec";
+        return "Time ⭣";
       } else if (selectedCriteria == "Recent") {
-        return "Rec>Old";
+        return "Time ⭡";
       } else if (selectedCriteria == "Most") {
-        return "Più>Meno";
+        return "Lenght ⭡";
       } else if (selectedCriteria == "Least") {
-        return "Meno>Più";
+        return "Lenght ⭣";
       } else {
-        return "Old>Rec";
+        return "Time ⭣";
       }
     },
     toggleDropdown() {

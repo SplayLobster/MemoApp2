@@ -20,6 +20,7 @@
       <pre v-else class="placeholder">Write a note</pre>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
+      <div class="type">{{ type }}</div>
     </div>
     <!-- Display Delete Button when hovering and not editing -->
     <button
@@ -92,6 +93,13 @@ export default {
       type: [String, Number],
       required: true,
     },
+    type: {
+      type: String,
+      required: true,
+      validator(value) {
+        return ['classic', 'list'].includes(value);
+      },
+    },
   },
   data() {
     return {
@@ -133,6 +141,7 @@ export default {
         content: this.newContent,
         timestamp: Date.now(),
         utente: this.utente,
+        type: this.type,
       };
 
       try {
@@ -397,7 +406,7 @@ textarea {
 .cancel-btn {
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
   top: 18px;
-  right: 28px;
+  right: 29px;
   font-size: 16px;
   padding: 10px 15px;
   cursor: pointer;
@@ -411,7 +420,13 @@ textarea {
 .cancel-btn:hover {
   background-color: #b9b9b9c5;
 }
-
+.type{
+  color: rgb(196, 196, 196);
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 8px;
+}
 .utente {
   color: rgb(196, 196, 196);
   position: absolute;

@@ -72,6 +72,7 @@
               :utente="note.utente"
               :note-id="note.id"
               :index="index"
+              :type="note.type"
               @update-note="updateNote(index, $event.action, $event.data)"
             />
             <ListNote
@@ -81,6 +82,7 @@
               :timestamp="note.timestamp"
               :utente="note.utente"
               :note-id="note.id"
+              :type="note.type"
               @update-note="updateNote(index, $event.action, $event.data)"
             />
           </template>
