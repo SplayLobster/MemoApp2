@@ -396,19 +396,6 @@ li {
   white-space: pre-wrap;
   max-width: 100%;
 }
-.delete-btn{
-  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
-  top: 10px;
-  right: 15px;
-  font-size: 8px;
-  padding: 4px 9px;
-  cursor: pointer;
-  color: var(--note-text-color);
-  border: none;
-  background-color: #b9b9b92f;
-  border-radius: 0;
-  transition: background-color 0.3s ease; 
-}
 .save-btn, .delete-btn-modal {
   font-size: 16px;
   padding: 10px 15px; /* Regola il padding come preferisci */
@@ -424,11 +411,23 @@ li {
 .save-btn:hover, .delete-btn-modal:hover {
   background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
 }
-
+.delete-btn{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 10px;
+  right: 15px;
+  font-size: 8px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease; 
+}
 .cancel-btn {
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
   top: 18px;
-  right: 30px;
+  right: 28px;
   font-size: 16px;
   padding: 10px 15px;
   cursor: pointer;
@@ -442,6 +441,7 @@ li {
 .cancel-btn:hover {
   background-color: #b9b9b9c5;
 }
+
 .edit-title {
   background-color: var(--note-background-color);
   color: var(--note-text-color);

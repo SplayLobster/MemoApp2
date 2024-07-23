@@ -406,7 +406,7 @@ textarea {
 .cancel-btn {
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
   top: 18px;
-  right: 30px;
+  right: 28px;
   font-size: 16px;
   padding: 10px 15px;
   cursor: pointer;
