@@ -15,7 +15,9 @@
       aria-labelledby="sortDropdown"
     >
       <li>
-        <a class="dropdown-item" @click.stop="toggleSortCriteriaTime()">Time</a>
+        <a class="dropdown-item" @click.stop="toggleSortCriteriaTime()"
+          >Time</a
+        >
       </li>
       <li>
         <a class="dropdown-item" @click.stop="toggleSortCriteriaLength()"
@@ -37,22 +39,22 @@ export default {
   data() {
     return {
       dropdownVisible: false,
-      selectedCriteria: localStorage.getItem("sortCriteria") || "Oldest", // Default to Recent if no criteria is set'
+      selectedCriteria: localStorage.getItem("sortCriteria") || "Oldest", // Default to Recent if no criteria is set
     };
   },
-
   methods: {
     printCriteria(selectedCriteria) {
-      if (selectedCriteria == "Oldest") {
-        return "Time ⭣";
-      } else if (selectedCriteria == "Recent") {
-        return "Time ⭡";
-      } else if (selectedCriteria == "Most") {
-        return "Lenght ⭡";
-      } else if (selectedCriteria == "Least") {
-        return "Lenght ⭣";
-      } else {
-        return "Time ⭣";
+      switch (selectedCriteria) {
+        case "Oldest":
+          return "Time ⭣";
+        case "Recent":
+          return "Time ⭡";
+        case "Most":
+          return "Length ⭡";
+        case "Least":
+          return "Length ⭣";
+        default:
+          return "Time ⭣";
       }
     },
     toggleDropdown() {
@@ -93,12 +95,12 @@ export default {
 
 <style scoped>
 .dropdown {
-  position: absloute;
+  position: relative;
   display: inline-block;
 }
 
 .btn {
-  position:absolute;
+  position: relative;
   padding: 8px 16px;
   font-size: 14px;
   background-color: #7c7c7c00;
@@ -137,8 +139,8 @@ export default {
   opacity: 1;
   pointer-events: auto;
 }
+
 .dropdown-item {
-  position:absolute;
   display: block;
   padding: 10px 20px;
   clear: both;

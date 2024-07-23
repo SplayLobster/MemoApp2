@@ -396,25 +396,39 @@ li {
   white-space: pre-wrap;
   max-width: 100%;
 }
-.save-btn, .delete-btn-modal {
+.save-btn {
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 5px;
   font-size: 16px;
-  padding: 10px 15px; /* Regola il padding come preferisci */
+  padding: 10px 15px;
   cursor: pointer;
   color: var(--note-text-color);
   border: none;
-  background-color: #b9b9b92f; /* Colore di sfondo base */
-  border-color: transparent;
-  border-radius: 0; /* Assicura che i bordi siano squadrati */
+  background-color: #b9b9b92f;
+  border-radius: 0;
   transition: background-color 0.3s ease;
 }
-
+.delete-btn-modal{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 80px;
+  font-size: 16px;
+  padding: 10px 15px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+}
 .save-btn:hover, .delete-btn-modal:hover {
   background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
 }
 .delete-btn{
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
-  top: 10px;
-  right: 15px;
+  top: 5px;
+  right: 5px;
   font-size: 8px;
   padding: 4px 9px;
   cursor: pointer;
@@ -426,8 +440,8 @@ li {
 }
 .cancel-btn {
   position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
-  top: 18px;
-  right: 28px;
+  top: 5px;
+  right: 5px;
   font-size: 16px;
   padding: 10px 15px;
   cursor: pointer;

@@ -1,3 +1,3 @@
 - X search bar (Tommy)
 - CheckBox	editing (Matte)
-- Align buttons, tipo nota(classica o lista, in alto a sinistra)(Linda)
+- Align buttons, note type (classic or list) (Linda)
