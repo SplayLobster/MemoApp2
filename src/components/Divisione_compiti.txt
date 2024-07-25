@@ -1,0 +1,3 @@
+- X search bar (Tommy)
+- CheckBox	editing (Matte)
+- Align buttons, note type (classic or list) (Linda)

@@ -20,6 +20,7 @@
       <pre v-else class="placeholder">Write a note</pre>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
+      <div class="type">{{ type }}</div>
     </div>
     <!-- Display Delete Button when hovering and not editing -->
     <button
@@ -92,6 +93,13 @@ export default {
       type: [String, Number],
       required: true,
     },
+    type: {
+      type: String,
+      required: true,
+      validator(value) {
+        return ['classic', 'list'].includes(value);
+      },
+    },
   },
   data() {
     return {
@@ -133,6 +141,7 @@ export default {
         content: this.newContent,
         timestamp: Date.now(),
         utente: this.utente,
+        type: this.type,
       };
 
       try {
@@ -366,60 +375,71 @@ textarea {
   gap: 10px; /* Space between buttons */
 }
 
-.delete-btn-modal {
-  position: absolute;
+.save-btn {
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 5px;
+  font-size: 16px;
+  padding: 10px 15px;
   cursor: pointer;
-  font-size: 70%;
-  bottom: 10px;
-  left: 10px;
-  color: red;
-  background-color: transparent;
-  border-color: transparent;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
 }
-.delete-btn {
-  position: absolute;
+.delete-btn-modal{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 80px;
+  font-size: 16px;
+  padding: 10px 15px;
   cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+}
+.save-btn:hover, .delete-btn-modal:hover {
+  background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
+}
+.delete-btn{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
   top: 5px;
   right: 5px;
-  font-size: 70%;
-  color: red;
-  background-color: transparent;
-  border-color: transparent;
-}
-
-.save-btn {
-  font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  font-size: 8px;
+  padding: 4px 9px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-color: #b9b9b92f;
+  border: none;
   background-color: #b9b9b92f;
-}
-.save-btn:hover {
-  border-color: #b9b9b9c4;
-  background-color: #b9b9b9c5;
+  border-radius: 0;
+  transition: background-color 0.3s ease; 
 }
 .cancel-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 5px;
+  right: 5px;
   font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 10px 15px;
   cursor: pointer;
   color: var(--note-text-color);
-  border-radius: 30%;
-  border-color: #b9b9b92f;
+  border: none;
   background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
 }
+
 .cancel-btn:hover {
-  border-color: #b9b9b9c4;
   background-color: #b9b9b9c5;
+}
+.type{
+  color: rgb(196, 196, 196);
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 8px;
 }
 .utente {
   color: rgb(196, 196, 196);

@@ -11,7 +11,7 @@
     <div class="note-content">
       <h2 v-if="title">{{ title }}</h2>
       <h3 v-else class="placeholder">Title</h3>
-      <ul>
+      <ul v-if="type === 'list'">
         <!-- List items -->
         <li
           v-for="(item, idx) in items"
@@ -30,8 +30,13 @@
           </div>
         </li>
       </ul>
+      <div v-if="type === 'classic'" class="classic-content">
+        <!-- Classic note content -->
+        <p>{{ items[0].text }}</p>
+      </div>
       <div class="utente">{{ utente }}</div>
       <div class="timestamp">{{ formattedTimestamp }}</div>
+      <div class="type">{{ type }}</div> <!-- Display note type -->
     </div>
     <!-- Delete Button -->
     <button
@@ -42,6 +47,7 @@
       <i class="fa-solid fa-trash-can"></i>
     </button>
   </div>
+
   <!-- Modal for editing -->
   <div v-else class="modal" @click.stop="handleClickOutside">
     <div class="modal-content">
@@ -53,7 +59,7 @@
         :id="generateUniqueId('title-input')"
         :maxlength="maxTitleLength"
       />
-      <ul>
+      <ul v-if="type === 'list'">
         <!-- List items for editing -->
         <li v-for="(item, idx) in newItems" :key="idx">
           <div
@@ -87,8 +93,16 @@
           </div>
         </li>
       </ul>
+      <div v-if="type === 'classic'">
+        <!-- Input for classic note content -->
+        <textarea
+          v-model="newItems[0].text"
+          class="edit-textarea"
+          :placeholder="placeholderText"
+        ></textarea>
+      </div>
       <!-- Button to add new item -->
-      <button @click="addItem" class="add-btn">
+      <button v-if="type === 'list'" @click="addItem" class="add-btn">
         <i class="fa-solid fa-plus"></i>
       </button>
       <!-- Edit actions buttons -->
@@ -129,6 +143,13 @@ export default {
       type: [String, Number],
       required: true,
     },
+    type: {
+      type: String,
+      required: true,
+      validator(value) {
+        return ['classic', 'list'].includes(value);
+      },
+    },
   },
   data() {
     return {
@@ -136,38 +157,30 @@ export default {
       newItems: this.items.map((item) => ({ ...item })),
       isEditing: false,
       showEditIcon: false,
-      showIcons: false,
-      maxTitleLength: 25, // Default char limit per title
-      maxCharsPerLine: 28, // Default char limit per line
+      hoverIndex: null,
+      maxTitleLength: 25,
+      maxCharsPerLine: 28,
       formattedTimestamp: "",
-      hoverIndex: null, // Add this line to track the index of the hovered item
     };
   },
   watch: {
-    // Update newTitle when title prop changes
     title(newVal) {
       this.newTitle = newVal;
     },
-    // Update newItems when items prop changes
     items(newVal) {
       this.newItems = newVal.map((item) => ({ ...item }));
     },
-    // Update formattedTimestamp when timestamp prop changes
     timestamp(newVal) {
       this.formattedTimestamp = this.formatTimestamp(newVal);
     },
   },
   mounted() {
-    // Format timestamp on component mount
     this.formattedTimestamp = this.formatTimestamp(this.timestamp);
-    this.isEditing = false;
   },
   methods: {
-    // Refresh the page
     refreshPage() {
       window.location.reload();
     },
-    // Save edited note
     async saveEdit() {
       const editedNote = {
         id: this.noteId,
@@ -175,19 +188,17 @@ export default {
         items: this.newItems,
         timestamp: Date.now(),
         utente: this.utente,
+        type: this.type, // Include type in saved note
       };
 
       try {
-        await updateNotes(this.noteId, editedNote); // Update the specific note
-
+        await updateNotes(this.noteId, editedNote);
         this.isEditing = false;
         this.showEditIcon = false;
       } catch (error) {
         console.error("Failed to save note:", error);
       }
-      this.refreshPage();
     },
-    // Delete note
     async deleteNote() {
       try {
         const { notes } = await loadNotes();
@@ -198,28 +209,22 @@ export default {
       } catch (error) {
         console.error("Failed to delete note:", error);
       }
-      this.refreshPage();
     },
-    // Cancel editing
     cancelEdit() {
       this.newTitle = this.title;
       this.newItems = this.items.map((item) => ({ ...item }));
       this.isEditing = false;
       this.showEditIcon = false;
-      this.refreshPage();
     },
-    // Start editing
     startEdit() {
       this.isEditing = true;
     },
-    // Handle click outside modal
     handleClickOutside(event) {
       if (!event.target.closest(".modal-content")) {
         this.saveEdit();
         this.isEditing = false;
       }
     },
-    // Format timestamp to readable format
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);
       const day = date
@@ -234,29 +239,22 @@ export default {
       const seconds = date.getSeconds().toString().padStart(2, "0");
       return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
     },
-    // Truncate text to fit max characters per line
     truncatedText(text) {
-      if (text.length <= this.maxCharsPerLine) {
-        return text;
-      } else {
-        return text.substring(0, this.maxCharsPerLine) + "...";
-      }
+      return text.length <= this.maxCharsPerLine
+        ? text
+        : text.substring(0, this.maxCharsPerLine) + "...";
     },
-    // Generate unique ID
     generateUniqueId(prefix, index = "") {
       return `${prefix}-${this._uid}-${index}`;
     },
-    // Toggle completion status of item
     toggleItemCompleted(index) {
       if (this.newItems[index]) {
         this.newItems[index].completed = !this.newItems[index].completed;
       }
     },
-    // Add new item
     addItem() {
       this.newItems.push({ text: "", completed: false });
     },
-    // Remove item at index
     removeItem(index) {
       this.newItems.splice(index, 1);
     },
@@ -398,6 +396,65 @@ li {
   white-space: pre-wrap;
   max-width: 100%;
 }
+.save-btn {
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 5px;
+  font-size: 16px;
+  padding: 10px 15px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+}
+.delete-btn-modal{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  bottom: 5px;
+  right: 80px;
+  font-size: 16px;
+  padding: 10px 15px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+}
+.save-btn:hover, .delete-btn-modal:hover {
+  background-color: #b9b9b9c5; /* Colore di sfondo al passaggio del mouse */
+}
+.delete-btn{
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 5px;
+  right: 5px;
+  font-size: 8px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease; 
+}
+.cancel-btn {
+  position: absolute; /* Posiziona in alto a destra rispetto al contenitore */
+  top: 5px;
+  right: 5px;
+  font-size: 16px;
+  padding: 10px 15px;
+  cursor: pointer;
+  color: var(--note-text-color);
+  border: none;
+  background-color: #b9b9b92f;
+  border-radius: 0;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #b9b9b9c5;
+}
 
 .edit-title {
   background-color: var(--note-background-color);
@@ -447,60 +504,14 @@ li {
   margin-left: 10px;
 }
 
-.delete-btn-modal {
+.type{
+  color: rgb(196, 196, 196);
   position: absolute;
-  cursor: pointer;
-  font-size: 70%;
-  bottom: 10px;
-  left: 10px;
-  color: red;
-  background-color: transparent;
-  border-color: transparent;
-}
-.delete-btn {
-  position: absolute;
-  cursor: pointer;
   top: 5px;
-  right: 5px;
-  font-size: 70%;
-  color: red;
-  background-color: transparent;
-  border-color: transparent;
+  left: 5px;
+  font-size: 8px;
 }
-.save-btn {
-  font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  cursor: pointer;
-  color: var(--note-text-color);
-  border-color: #b9b9b92f;
-  background-color: #b9b9b92f;
-}
-.save-btn:hover {
-  border-color: #b9b9b9c4;
-  background-color: #b9b9b9c5;
-}
-.cancel-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 16px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  cursor: pointer;
-  color: var(--note-text-color);
-  border-radius: 30%;
-  border-color: #b9b9b92f;
-  background-color: #b9b9b92f;
-}
-.cancel-btn:hover {
-  border-color: #b9b9b9c4;
-  background-color: #b9b9b9c5;
-}
+
 .utente {
   color: rgb(196, 196, 196);
   position: absolute;

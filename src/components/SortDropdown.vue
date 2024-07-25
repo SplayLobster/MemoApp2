@@ -15,7 +15,9 @@
       aria-labelledby="sortDropdown"
     >
       <li>
-        <a class="dropdown-item" @click.stop="toggleSortCriteriaTime()">Time</a>
+        <a class="dropdown-item" @click.stop="toggleSortCriteriaTime()"
+          >Time</a
+        >
       </li>
       <li>
         <a class="dropdown-item" @click.stop="toggleSortCriteriaLength()"
@@ -37,22 +39,22 @@ export default {
   data() {
     return {
       dropdownVisible: false,
-      selectedCriteria: localStorage.getItem("sortCriteria") || "Oldest", // Default to Recent if no criteria is set'
+      selectedCriteria: localStorage.getItem("sortCriteria") || "Oldest", // Default to Recent if no criteria is set
     };
   },
-
   methods: {
     printCriteria(selectedCriteria) {
-      if (selectedCriteria == "Oldest") {
-        return "Old>Rec";
-      } else if (selectedCriteria == "Recent") {
-        return "Rec>Old";
-      } else if (selectedCriteria == "Most") {
-        return "Più>Meno";
-      } else if (selectedCriteria == "Least") {
-        return "Meno>Più";
-      } else {
-        return "Old>Rec";
+      switch (selectedCriteria) {
+        case "Oldest":
+          return "Time ⭣";
+        case "Recent":
+          return "Time ⭡";
+        case "Most":
+          return "Length ⭡";
+        case "Least":
+          return "Length ⭣";
+        default:
+          return "Time ⭣";
       }
     },
     toggleDropdown() {
@@ -98,6 +100,7 @@ export default {
 }
 
 .btn {
+  position: relative;
   padding: 8px 16px;
   font-size: 14px;
   background-color: #7c7c7c00;
@@ -136,8 +139,8 @@ export default {
   opacity: 1;
   pointer-events: auto;
 }
+
 .dropdown-item {
-  text-align: center;
   display: block;
   padding: 10px 20px;
   clear: both;
